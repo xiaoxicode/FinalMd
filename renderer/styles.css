@@ -133,10 +133,6 @@ body { user-select: none; }
 .btn.hbtn.active:hover { background: var(--accent); }
 
 /* 段落样式下拉 */
-/* 语言选择器：靠右放，避免和常用按钮挤在一起 */
-.lang-group { margin-left: auto; border-right: none; }
-.lang-select { min-width: 104px; }
-
 .style-select {
   height: 28px;
   min-width: 96px;

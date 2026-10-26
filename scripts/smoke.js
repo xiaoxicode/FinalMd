@@ -130,15 +130,7 @@ const TEST = `
   ok('段落样式下拉', !!document.querySelector('#styleSelect'), '');
   ok('状态栏字数', /\\d+/.test(document.querySelector('#statWords').textContent), document.querySelector('#statWords').textContent);
 
-  /* 5c. 多语言（7 种语言） */
-  const langSel = document.querySelector('#langSelect');
-  ok('语言选择器存在', !!langSel, langSel ? '选项数 ' + langSel.options.length : '未找到');
-  ok(
-    '语言选择器含 7 种语言',
-    !!langSel && langSel.options.length === 7,
-    langSel ? Array.from(langSel.options).map(function (o) { return o.value; }).join(',') : '',
-  );
-
+  /* 5c. 多语言（7 种语言）：切换入口为菜单栏「语言」，工具栏不再提供语言下拉 */
   const LANG_EXPECT = { zh: '加粗', en: 'Bold', ja: '太字', ko: '굵게', fr: 'Gras', de: 'Fett', es: 'Negrita' };
   let langOk = 0;
   const langSeen = [];

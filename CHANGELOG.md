@@ -5,6 +5,26 @@
 
 ---
 
+## 未发布 Unreleased
+
+### 移除 Removed
+
+- **移除工具栏语言切换下拉**：工具栏第二行右侧的语言选择器实际无法正常使用，予以剔除
+  - 多语言能力本身完整保留，7 种语言仍可通过菜单栏「语言 / Language」单选项切换，选择依旧持久化到 `localStorage`
+  - 同步清理死代码：`styles.css` 中的 `.lang-group` / `.lang-select` 样式、`buildRibbon()` 的 `onLangPick` 参数
+  - 冒烟测试移除 2 项针对该下拉的断言（断言总数 66 → 64），其余多语言断言保持通过
+  - README 中/英文版的「语言切换方式」描述已同步更新
+
+### English
+
+- **Removed the language switcher from the ribbon**: the dropdown on the right of the second ribbon row did not work in practice
+  - i18n itself is untouched — all 7 languages remain switchable from the "Language" radio menu, still persisted in `localStorage`
+  - Cleaned up the related dead code: `.lang-group` / `.lang-select` styles and `buildRibbon()`'s `onLangPick` parameter
+  - Dropped the 2 smoke-test assertions covering the removed dropdown (66 → 64 assertions); the rest of the i18n checks still pass
+  - Updated the language-switching wording in both the Chinese and English README
+
+---
+
 ## 1.0.1 — 2026-10-26
 
 ### 新增 Added

@@ -34,7 +34,7 @@ FinalMd 面向**不熟悉 Markdown 语法**的用户：你可以像用普通笔�
 - 六级标题（⌘1~⌘6，⌘0 回正文）
 - 查找替换（⌘F）、字数 / 字符 / 行数统计、⌘+/- 缩放
 - 白纸排版界面，未保存关闭提醒
-- **界面多语言（7 种）**：简体中文 / English / 日本語 / 한국어 / Français / Deutsch / Español，工具栏右侧下拉随时切换，首次启动自动跟随系统语言
+- **界面多语言（7 种）**：简体中文 / English / 日本語 / 한국어 / Français / Deutsch / Español，在菜单栏「语言」单选项中切换，首次启动自动跟随系统语言
 
 **插入内容**
 - 图片：本地多选、拖拽进编辑区、⌘V 粘贴，自动内嵌为 base64；超过 380KB 自动压缩（最长边 1600px）
@@ -123,7 +123,7 @@ If you are interested in this project, I am very glad to learn your advices.
 - Six heading levels (⌘1–⌘6, ⌘0 back to paragraph)
 - Find & replace (⌘F), word / character / line count, ⌘+/− zoom
 - Paper-like layout, with a warning when closing unsaved work
-- **7 UI languages**: Simplified Chinese, English, Japanese, Korean, French, German and Spanish — switch from the ribbon; the first launch follows your system language
+- **7 UI languages**: Simplified Chinese, English, Japanese, Korean, French, German and Spanish — switch from the "Language" radio menu; the first launch follows your system language
 
 **Inserting content**
 - Images: pick from disk, drag & drop, or ⌘V paste — embedded as base64; auto-compressed above 380KB (max edge 1600px)

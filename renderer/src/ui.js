@@ -1,5 +1,5 @@
 import { ICONS, TEXT_ICONS, headingIcon, PARAGRAPH_ICON } from './icons.js';
-import { t, withAccel, LANGS, getLang } from './i18n.js';
+import { t, withAccel } from './i18n.js';
 
 const $ = (sel) => document.querySelector(sel);
 const FULL_SPACE = '　　'; // 两个全角空格 = 首行缩进
@@ -134,7 +134,6 @@ const GROUPS = [
       { cmd: 'find', icon: ICONS.find, titleKey: 'tb.find', accel: '⌘F' },
     ],
   },
-  { row: 2, langSelect: true },
 ];
 
 function makeButton(item) {
@@ -146,7 +145,7 @@ function makeButton(item) {
   return b;
 }
 
-export function buildRibbon(onCommand, onLangPick) {
+export function buildRibbon(onCommand) {
   const r1 = $('#ribbonRow1');
   const r2 = $('#ribbonRow2');
   r1.innerHTML = '';
@@ -187,18 +186,6 @@ export function buildRibbon(onCommand, onLangPick) {
           }),
         );
       }
-    } else if (g.langSelect) {
-      box.classList.add('lang-group');
-      const sel = document.createElement('select');
-      sel.className = 'style-select lang-select';
-      sel.id = 'langSelect';
-      sel.title = t('tb.language');
-      sel.innerHTML = LANGS.map(
-        (l) => `<option value="${l.code}">${l.label}</option>`,
-      ).join('');
-      sel.value = getLang();
-      sel.onchange = () => onLangPick && onLangPick(sel.value);
-      box.appendChild(sel);
     } else {
       g.items.forEach((it) => box.appendChild(makeButton(it)));
     }

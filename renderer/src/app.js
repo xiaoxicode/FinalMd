@@ -482,13 +482,13 @@ let bootedLang = null;
 /** 语言变化后重绘所有依赖语言的动态 UI（工具栏提示、状态栏、图表对话框、菜单） */
 function handleLangChange(code) {
   applyDomI18n();
-  buildRibbon(dispatch, pickLang);
+  buildRibbon(dispatch);
   refreshChartDialog();
   if (editor) refreshUI();
   if (api.setLang) api.setLang(code);
 }
 
-/** 用户在工具栏语言下拉里选了某个语言 */
+/** 用户在菜单栏「语言」里选了某个语言 */
 function pickLang(code) {
   const changed = setLang(code);
   if (!changed) return;
@@ -498,7 +498,7 @@ function pickLang(code) {
 function boot() {
   bootedLang = getLang();
   applyDomI18n();
-  buildRibbon(dispatch, pickLang);
+  buildRibbon(dispatch);
   initChartDialog();
   bindModals();
   // 把启动时的语言同步给主进程，让原生菜单与系统对话框用同一种语言
