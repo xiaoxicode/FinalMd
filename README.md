@@ -81,7 +81,11 @@ Electron 45 + TipTap 3（ProseMirror）+ tiptap-markdown，构建用 esbuild。
 
 ### 许可
 
-MIT
+[Apache License 2.0](LICENSE)（`Apache-2.0`）
+
+Copyright © 2026 Cliff
+
+允许商用、修改、分发与专利授权；分发时需保留版权声明、许可证副本，并保留 [`NOTICE`](NOTICE) 文件中的归属声明。
 
 ---
 
@@ -160,4 +164,8 @@ Charts are a hand-written SVG engine (no third-party chart library), rasterized 
 
 ### License
 
-MIT
+[Apache License 2.0](LICENSE) (`Apache-2.0`)
+
+Copyright © 2026 Cliff
+
+Commercial use, modification, redistribution and a patent grant are all permitted. If you redistribute this software, you must keep the copyright notice and a copy of the license, and retain the attribution in the [`NOTICE`](NOTICE) file.
