@@ -27,12 +27,27 @@ app.whenReady().then(async () => {
   const htmlPath = path.join(ASSETS, '_icon.html');
   fs.writeFileSync(htmlPath, `<!DOCTYPE html><html><body style="margin:0">${SVG}</body></html>`);
 
-  const win = new BrowserWindow({ width: 1024, height: 1024, show: true, backgroundColor: '#00000000' });
+  // offscreen 渲染：普通窗口会被屏幕可视高度裁剪（1024 只剩 ~817），
+  // 离屏窗口不受屏幕尺寸限制，capturePage 才能拿到完整 1024x1024。
+  const win = new BrowserWindow({
+    width: 1024,
+    height: 1024,
+    useContentSize: true,
+    show: false,
+    offscreen: true,
+    webPreferences: { offscreen: true },
+    backgroundColor: '#00000000',
+  });
   await win.loadFile(htmlPath);
   await new Promise((r) => setTimeout(r, 1200));
-  const img = await win.webContents.capturePage({ x: 0, y: 0, width: 1024, height: 1024 });
+  const img = await win.webContents.capturePage();
   const png1024 = path.join(ASSETS, 'icon_1024.png');
-  fs.writeFileSync(png1024, img.toPNG());
+  // capturePage 可能按显示器缩放系数返回 2048x2048，统一归一到 1024x1024
+  let png = img;
+  if (img.getSize().width !== 1024) {
+    png = await img.resize({ width: 1024, height: 1024 });
+  }
+  fs.writeFileSync(png1024, png.toPNG());
   console.log('PNG1024_OK', png1024, fs.statSync(png1024).size);
   app.quit();
 });

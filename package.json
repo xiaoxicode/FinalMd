@@ -21,6 +21,8 @@
     "shot": "env -u ELECTRON_RUN_AS_NODE ./node_modules/electron/dist/Electron.app/Contents/MacOS/Electron scripts/screenshot.js --no-sandbox --disable-gpu",
     "dist:mac": "npm run build && electron-builder --mac --arm64",
     "dist:mac-all": "npm run build && electron-builder --mac --arm64 --x64",
+    "dist:win": "npm run build && electron-builder --win --x64",
+    "dist:linux": "npm run build && electron-builder --linux --x64",
     "mas-dev": "npm run build && electron-builder --mac mas-dev",
     "mas": "npm run build && electron-builder --mac mas"
   },
@@ -68,6 +70,32 @@
     },
     "dmg": {
       "sign": false
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "artifactName": "FinalMd-${version}-win-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "墨写 Markdown"
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "category": "Office;TextEditor;",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "artifactName": "FinalMd-${version}-linux-${arch}.${ext}",
+      "mimeTypes": ["text/markdown", "text/plain"]
     },
     "mas": {
       "type": "distribution",

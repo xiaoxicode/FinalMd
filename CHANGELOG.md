@@ -7,6 +7,19 @@
 
 ## 未发布 Unreleased
 
+### 新增 Added
+
+- **Windows / Linux 打包支持**：补齐 `electron-builder` 的 `win` / `linux` / `nsis` 配置
+  - Windows 产出 NSIS 安装包 + 免安装 portable，Linux 产出 AppImage + deb（均为 x64）
+  - 新增 `assets/icon.ico`（16–256 多尺寸）与 `assets/icon.png`（512×512）
+  - 新增 GitHub Actions 三平台自动发版：推送 `v*` tag 即在原生 runner 上构建并上传 Release（macOS 上 CI 构建为未签名包）
+  - 新增 `npm run dist:win` / `npm run dist:linux` 本地构建命令
+  - Windows / Linux 产物命名 `FinalMd-版本-{win|linux}-x64.*`，避免与 macOS 产物混淆
+
+### 修复 Fixed
+
+- **应用图标被上下裁剪**：`scripts/make-icon.js` 用 `capturePage` 截图时窗口被屏幕可视高度裁掉（1024 只剩约 817px），改用离屏渲染完整截图；重制 `icon.icns` / `icon.iconset`，四个圆角恢复完整
+
 ### 移除 Removed
 
 - **移除工具栏语言切换下拉**：工具栏第二行右侧的语言选择器实际无法正常使用，予以剔除
@@ -16,6 +29,15 @@
   - README 中/英文版的「语言切换方式」描述已同步更新
 
 ### English
+
+- **Added Windows / Linux packaging**: completed `electron-builder` `win` / `linux` / `nsis` config
+  - Windows: NSIS installer + portable; Linux: AppImage + deb (x64)
+  - New `assets/icon.ico` (16–256, multi-size) and `assets/icon.png` (512×512)
+  - New GitHub Actions cross-platform release workflow: pushing a `v*` tag builds on native runners and uploads to the Release (macOS CI builds are unsigned)
+  - New local build scripts `npm run dist:win` / `npm run dist:linux`
+  - Windows / Linux artifacts are named `FinalMd-<version>-{win|linux}-x64.*`
+
+- **Fixed a vertically cropped app icon**: `capturePage` in `scripts/make-icon.js` was clipped to the visible screen height (~817px of 1024); switched to offscreen rendering for a full capture and rebuilt `icon.icns` / `icon.iconset` with all four rounded corners intact
 
 - **Removed the language switcher from the ribbon**: the dropdown on the right of the second ribbon row did not work in practice
   - i18n itself is untouched — all 7 languages remain switchable from the "Language" radio menu, still persisted in `localStorage`

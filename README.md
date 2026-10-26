@@ -57,18 +57,29 @@ git clone https://github.com/xiaoxicode/FinalMd.git
 cd FinalMd
 npm install
 npm start          # 开发运行
-npm run smoke      # 冒烟测试（66 项）
+npm run smoke      # 冒烟测试（64 项）
 npm run i18n       # 多语言词典一致性校验
 ```
 
 ### 打包发布
 
 ```bash
-npm run dist               # 打包到 build/（macOS .app）
+npm run dist               # 打包到 build/（macOS .app，自制打包脚本，无需证书）
 ./scripts/publish-mac.sh   # 签名 + 公证 + 上传 Release（需配置 .env）
+
+npm run dist:win           # Windows：NSIS 安装包 + 免安装 portable（macOS 上需先 brew install --cask wine-stable）
+npm run dist:linux         # Linux：AppImage + deb（macOS 上需 Docker：electronuserland/builder 镜像）
 ```
 
-发布相关配置见 `.env.example` 与 `scripts/publish-mac.sh`。应用已接入 electron-updater，正式包会在启动时静默检查更新，用户确认后下载安装（有未保存文档时先引导保存）。
+**三平台自动发版（推荐）**：推 tag 即可触发 GitHub Actions 在三个原生 runner 上构建并上传 Release：
+
+```bash
+git tag v1.0.2 && git push origin v1.0.2
+```
+
+CI 上 macOS 构建为未签名包（`-c.mac.identity=null`）；正式签名 macOS 包仍走 `publish-mac.sh`。产物命名：`FinalMd-版本-win-x64.exe`、`FinalMd-版本-linux-x86_64.AppImage` 等。
+
+发布相关配置见 `.env.example` 与 `scripts/publish-mac.sh`。应用已接入 electron-updater，正式包会在启动时静默检查更新，用户确认后下载安装（有未保存文档时先引导保存）。Windows 与 macOS 支持自动更新；Linux 仅 AppImage 支持，deb 需手动更新。
 
 ### 技术栈
 
@@ -146,18 +157,29 @@ git clone https://github.com/xiaoxicode/FinalMd.git
 cd FinalMd
 npm install
 npm start          # run in development
-npm run smoke      # smoke tests (66 checks)
+npm run smoke      # smoke tests (64 checks)
 npm run i18n       # i18n dictionary consistency check
 ```
 
 ### Build & release
 
 ```bash
-npm run dist               # package into build/ (macOS .app)
+npm run dist               # package into build/ (macOS .app, custom script, no certificate needed)
 ./scripts/publish-mac.sh   # sign + notarize + upload the Release (needs .env)
+
+npm run dist:win           # Windows: NSIS installer + portable (on macOS, install wine first)
+npm run dist:linux         # Linux: AppImage + deb (on macOS, build via Docker image electronuserland/builder)
 ```
 
-See `.env.example` and `scripts/publish-mac.sh`. The app ships with electron-updater: release builds check for updates silently at launch, download only after the user confirms, and ask to save unsaved work before installing.
+**Cross-platform release via CI (recommended)**: pushing a tag triggers GitHub Actions to build on native runners and upload artifacts to the Release:
+
+```bash
+git tag v1.0.2 && git push origin v1.0.2
+```
+
+macOS builds on CI are unsigned (`-c.mac.identity=null`); for a signed/notarized macOS release keep using `publish-mac.sh`. Artifacts are named `FinalMd-<version>-win-x64.exe`, `FinalMd-<version>-linux-x86_64.AppImage`, etc.
+
+See `.env.example` and `scripts/publish-mac.sh`. The app ships with electron-updater: release builds check for updates silently at launch, download only after the user confirms, and ask to save unsaved work before installing. Auto-update works on Windows and macOS; on Linux only the AppImage supports it — deb users update manually.
 
 ### Tech stack
 

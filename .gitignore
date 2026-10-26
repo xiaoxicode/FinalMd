@@ -21,3 +21,6 @@ assets/t32.png
 test-output.md
 .env
 .DS_Store
+
+# 手动分发产物（含完整 .app，体积大）
+dist/

@@ -1,0 +1,45 @@
+name: Release
+
+# 推送 tag（如 v1.0.2）触发三平台构建，产物自动上传到 GitHub Release，
+# 供 electron-updater 检测更新。正式的签名/公证 macOS 包仍走 scripts/publish-mac.sh。
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            # CI 上没有 Apple 开发者证书：显式关掉签名与公证，产出未签名包
+            args: --mac --arm64 --x64 -c.mac.identity=null -c.mac.notarize=false
+          - os: windows-latest
+            args: --win --x64
+          - os: ubuntu-latest
+            args: --linux --x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build renderer bundle
+        run: npm run build
+
+      - name: Package & publish
+        run: npx electron-builder ${{ matrix.args }} --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
