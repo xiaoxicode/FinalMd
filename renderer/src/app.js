@@ -4,12 +4,13 @@ import {
   initFindBar, openColorPopover, openHighlightPopover, indentParagraph, outdentParagraph,
   buildTocHtml, isModalOpen,
 } from './ui.js';
-import { initChartDialog, openChartDialog, decodeChartConfig, encodeChartConfig } from './chart-dialog.js';
+import { initChartDialog, openChartDialog, decodeChartConfig, encodeChartConfig, refreshChartDialog } from './chart-dialog.js';
 import { renderChartSVG, svgToPngDataUrl, sampleConfig } from './charts.js';
+import { t, setLang, getLang, applyDomI18n, onLangChange, htmlLangOf } from './i18n.js';
 
 const $ = (s) => document.querySelector(s);
 const api = window.api;
-const APP_VERSION = (api.appVersion && api.appVersion()) || '1.0.0';
+const APP_VERSION = (api.appVersion && api.appVersion()) || '1.0.1';
 
 let editor = null;
 let currentPath = null;
@@ -17,7 +18,7 @@ let dirty = false;
 let zoom = 1;
 let findBar = null;
 
-const docName = () => (currentPath ? currentPath.split(/[\\/]/).pop() : '未命名文档.md');
+const docName = () => (currentPath ? currentPath.split(/[\\/]/).pop() : t('doc.untitledFile'));
 
 /* ---------------- 状态 ---------------- */
 
@@ -28,9 +29,9 @@ function setDirty(v) {
   $('#docTitle').textContent = docName().replace(/\.(md|markdown|mdown|txt)$/i, '');
   $('#docPath').textContent = currentPath || '';
   const st = $('#saveState');
-  st.textContent = dirty ? '未保存' : '已保存';
+  st.textContent = dirty ? t('save.unsaved') : t('save.saved');
   st.classList.toggle('dirty', dirty);
-  $('#statPath').textContent = currentPath || '尚未保存到磁盘';
+  $('#statPath').textContent = currentPath || t('stat.notSaved');
 }
 
 function updateStats() {
@@ -38,9 +39,9 @@ function updateStats() {
   const text = editor.getText();
   const cn = (text.match(/[一-龥]/g) || []).length;
   const en = (text.replace(/[一-龥]/g, ' ').match(/[A-Za-z0-9_'’-]+/g) || []).length;
-  $('#statWords').textContent = `${cn + en} 字`;
-  $('#statChars').textContent = `${text.replace(/\s/g, '').length} 字符`;
-  $('#statLines').textContent = `${s.lines} 行`;
+  $('#statWords').textContent = t('stat.words', { n: cn + en });
+  $('#statChars').textContent = t('stat.chars', { n: text.replace(/\s/g, '').length });
+  $('#statLines').textContent = t('stat.lines', { n: s.lines });
 }
 
 function refreshUI() {
@@ -77,7 +78,7 @@ async function insertImageFiles(files) {
     editor.chain().focus().setImage({ src, alt: (f.name || '').replace(/\.[^.]+$/, '') }).run();
     n++;
   }
-  if (n) toast(`已内嵌插入 ${n} 张图片`);
+  if (n) toast(t('image.embeddedMany', { n }));
 }
 
 function insertImageUrl(url, alt) {
@@ -90,12 +91,12 @@ function insertImageUrl(url, alt) {
 async function newDoc() {
   if (dirty) {
     const r = await confirmDialog({
-      title: '新建文档',
-      text: '当前文档有未保存的修改，是否先保存？',
+      title: t('dlg.new.title'),
+      text: t('dlg.unsaved.text'),
       buttons: [
-        { id: 'save', label: '保存', primary: true },
-        { id: 'discard', label: '不保存', danger: true },
-        { id: 'cancel', label: '取消' },
+        { id: 'save', label: t('common.save'), primary: true },
+        { id: 'discard', label: t('common.dontSave'), danger: true },
+        { id: 'cancel', label: t('common.cancel') },
       ],
     });
     if (r === 'cancel') return;
@@ -109,12 +110,12 @@ async function newDoc() {
 async function openDoc() {
   if (dirty) {
     const r = await confirmDialog({
-      title: '打开文档',
-      text: '当前文档有未保存的修改，是否先保存？',
+      title: t('dlg.open.title'),
+      text: t('dlg.unsaved.text'),
       buttons: [
-        { id: 'save', label: '保存', primary: true },
-        { id: 'discard', label: '不保存', danger: true },
-        { id: 'cancel', label: '取消' },
+        { id: 'save', label: t('common.save'), primary: true },
+        { id: 'discard', label: t('common.dontSave'), danger: true },
+        { id: 'cancel', label: t('common.cancel') },
       ],
     });
     if (r === 'cancel') return;
@@ -126,7 +127,7 @@ async function openDoc() {
   fromMarkdown(editor, res.content);
   setDirty(false);
   refreshUI();
-  toast('已打开 ' + docName());
+  toast(t('toast.opened', { name: docName() }));
 }
 
 async function save(asNew = false) {
@@ -139,7 +140,7 @@ async function save(asNew = false) {
   if (!res) return false;
   currentPath = res.filePath;
   setDirty(false);
-  toast('已保存为 Markdown');
+  toast(t('toast.saved'));
   return true;
 }
 
@@ -162,21 +163,21 @@ async function exportHtml() {
     a{color:#2f6feb;}
     mark{background:#fff3a3;}
   `;
-  const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+  const html = `<!DOCTYPE html><html lang="${htmlLangOf(getLang())}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${docName().replace(/\.(md|markdown|mdown|txt)$/i, '')}</title>
 <style>${css}</style></head><body>\n${body}\n</body></html>`;
   const res = await api.exportFile({
     defaultPath: docName().replace(/\.(md|markdown|mdown|txt)$/i, '') + '.html',
-    filters: [{ name: '网页', extensions: ['html'] }],
+    filters: [{ name: t('filter.web'), extensions: ['html'] }],
     content: html,
   });
-  if (res) toast('已导出 HTML');
+  if (res) toast(t('toast.exportedHtml'));
 }
 
 async function exportPdf() {
   const res = await api.printToPdf();
-  if (res) toast('已导出 PDF');
+  if (res) toast(t('toast.exportedPdf'));
 }
 
 /* ---------------- 插入 ---------------- */
@@ -199,11 +200,11 @@ function insertTable() {
 function insertToc() {
   const html = buildTocHtml(editor);
   if (!html) {
-    toast('文档中没有标题，无法生成目录');
+    toast(t('toc.noHeadings'));
     return;
   }
   editor.chain().focus().insertContent(html).run();
-  toast('已插入目录');
+  toast(t('toc.inserted'));
 }
 
 /* ---------------- 命令分发 ---------------- */
@@ -264,7 +265,7 @@ function dispatch(cmd) {
     case 'image': openModal('maskImage'); break;
     case 'chart': openChartDialog(null, ({ src, alt, title }) => {
       editor.chain().focus().setImage({ src, alt, title }).run();
-      toast('图表已插入');
+      toast(t('chart.inserted'));
     }); break;
     case 'toc': insertToc(); break;
     case 'find': findBar?.open(); break;
@@ -283,29 +284,8 @@ function setZoom(v) {
 
 /* ---------------- 初始化 ---------------- */
 
-const WELCOME = `# 欢迎使用「墨写 Markdown」
-
-这是一个**所见即所得**的 Markdown 写作器：你看到的排版就是最终效果，不会显示任何 # 或 * 之类的标记符号，操作方式和 Word、WPS 一致。
-
-## 快速上手
-
-- 输入 \`#\` 加空格，立刻变成一级标题
-- 输入 \`-\` 加空格，变成项目符号列表
-- 输入 \`>\` 加空格，变成引用块
-- 选中文字后点击工具栏按钮，即可加粗、改颜色、加突出显示
-
-## 插入内容
-
-点击工具栏上的按钮即可插入：
-
-1. 图片 —— 支持本地文件、拖拽、直接粘贴，会内嵌进 Markdown
-2. 图表 —— 柱状图、折线图、饼图等，插入后双击还能回来改数据
-3. 表格、链接、代码块、分割线、目录
-
-> 所有内容最终都会保存为 \`.md\` 文件，图片与图表以 Base64 内嵌，单个文件即可完整带走。
-
-按 ⌘S 保存，试试看吧。
-`;
+// 欢迎文档随界面语言变化；仅在新建空白文档时使用
+const welcomeText = () => t('welcome');
 
 function bindModals() {
   document.querySelectorAll('[data-close]').forEach((el) => {
@@ -330,7 +310,7 @@ function bindModals() {
       editor.chain().focus().setImage({ src: f.dataUrl, alt: alt || f.name }).run();
     }
     closeModal('maskImage');
-    toast(`已插入 ${files.length} 张图片`);
+    toast(t('image.insertedMany', { n: files.length }));
   };
 
   $('#imageInsert').onclick = () => {
@@ -339,7 +319,7 @@ function bindModals() {
     if (url) {
       insertImageUrl(url, alt);
       closeModal('maskImage');
-      toast('已插入图片');
+      toast(t('image.inserted'));
     } else {
       $('#pickImageBtn').click();
     }
@@ -378,7 +358,7 @@ function bindChartEditing() {
       } else {
         editor.chain().focus().setImage({ src, alt, title }).run();
       }
-      toast('图表已更新');
+      toast(t('chart.updated'));
     });
   });
 }
@@ -404,7 +384,7 @@ let updating = false; // 是否正在下载，避免重复触发
 
 async function checkForUpdates(manual) {
   if (!api.updater) return;
-  if (manual) toast('正在检查更新…');
+  if (manual) toast(t('upd.checking'));
   await api.updater.check({ manual });
 }
 
@@ -413,23 +393,23 @@ async function askToDownload(info) {
     ? `<div style="max-height:150px;overflow:auto;margin-top:8px;color:var(--text-dim);font-size:12.5px;line-height:1.6">${escapeHtml(info.releaseNotes)}</div>`
     : '';
   const r = await confirmDialog({
-    title: '发现新版本',
-    text: `当前版本 v${APP_VERSION}，新版本 <b>v${info.version}</b> 已发布。是否立即下载更新？${notes}`,
+    title: t('upd.available.title'),
+    text: t('upd.available.text', { current: APP_VERSION, version: `<b>${info.version}</b>` }) + notes,
     buttons: [
-      { id: 'yes', label: '下载更新', primary: true },
-      { id: 'no', label: '以后再说' },
+      { id: 'yes', label: t('upd.download'), primary: true },
+      { id: 'no', label: t('upd.later') },
     ],
   });
   if (r !== 'yes') return;
 
   updating = true;
-  toast('开始下载更新…');
+  toast(t('upd.downloading'));
   const res = await api.updater.download();
   if (res && res.ok) {
-    toast('更新已下载完成');
+    toast(t('upd.downloaded'));
   } else {
     updating = false;
-    toast('下载失败：' + ((res && res.message) || '未知错误'));
+    toast(t('upd.downloadFailed', { msg: (res && res.message) || t('upd.unknownError') }));
   }
 }
 
@@ -437,11 +417,11 @@ async function askToInstall(info) {
   updating = false;
   if (dirty) {
     const r = await confirmDialog({
-      title: '有未保存的修改',
-      text: '安装更新需要重启应用。请先保存当前文档，再安装更新。<br/>要现在保存吗？',
+      title: t('upd.dirty.title'),
+      text: t('upd.dirty.text'),
       buttons: [
-        { id: 'save', label: '保存并重启更新', primary: true },
-        { id: 'cancel', label: '取消' },
+        { id: 'save', label: t('upd.saveAndRestart'), primary: true },
+        { id: 'cancel', label: t('common.cancel') },
       ],
     });
     if (r !== 'save') return;
@@ -449,11 +429,11 @@ async function askToInstall(info) {
     if (!ok) return;
   } else {
     const r = await confirmDialog({
-      title: '更新已就绪',
-      text: `新版本 <b>v${info.version}</b> 已下载完成，重启应用即可生效。`,
+      title: t('upd.ready.title'),
+      text: t('upd.ready.text', { version: `<b>${info.version}</b>` }),
       buttons: [
-        { id: 'restart', label: '立即重启更新', primary: true },
-        { id: 'later', label: '稍后手动重启' },
+        { id: 'restart', label: t('upd.restart'), primary: true },
+        { id: 'later', label: t('upd.manualLater') },
       ],
     });
     if (r !== 'restart') return;
@@ -470,16 +450,16 @@ function bindUpdater() {
         askToDownload(data || {});
         break;
       case 'not-available':
-        toast('当前已是最新版本');
+        toast(t('upd.latest'));
         break;
       case 'progress':
-        if (updating) toast('正在下载更新… ' + (data.percent || 0) + '%');
+        if (updating) toast(t('upd.progress', { percent: data.percent || 0 }));
         break;
       case 'downloaded':
         askToInstall(data || {});
         break;
       case 'error':
-        toast(data && data.message ? data.message : '检查更新失败');
+        toast(data && data.message ? data.message : t('upd.checkFailed'));
         break;
       default:
         break;
@@ -495,10 +475,34 @@ function escapeHtml(s) {
     .replace(/\n/g, '<br/>');
 }
 
+/* ---------------- 语言切换 ---------------- */
+
+let bootedLang = null;
+
+/** 语言变化后重绘所有依赖语言的动态 UI（工具栏提示、状态栏、图表对话框、菜单） */
+function handleLangChange(code) {
+  applyDomI18n();
+  buildRibbon(dispatch, pickLang);
+  refreshChartDialog();
+  if (editor) refreshUI();
+  if (api.setLang) api.setLang(code);
+}
+
+/** 用户在工具栏语言下拉里选了某个语言 */
+function pickLang(code) {
+  const changed = setLang(code);
+  if (!changed) return;
+  handleLangChange(code);
+}
+
 function boot() {
-  buildRibbon(dispatch);
+  bootedLang = getLang();
+  applyDomI18n();
+  buildRibbon(dispatch, pickLang);
   initChartDialog();
   bindModals();
+  // 把启动时的语言同步给主进程，让原生菜单与系统对话框用同一种语言
+  if (api.setLang) api.setLang(bootedLang);
 
   editor = createEditor({
     element: $('#editor'),
@@ -514,7 +518,7 @@ function boot() {
   bindChartEditing();
   bindDragHighlight();
 
-  fromMarkdown(editor, WELCOME);
+  fromMarkdown(editor, welcomeText());
   setDirty(false);
   setZoom(1);
   refreshUI();
@@ -533,7 +537,7 @@ function boot() {
       case 'menu:insert-chart':
         openChartDialog(null, ({ src, alt, title }) => {
           editor.chain().focus().setImage({ src, alt, title }).run();
-          toast('图表已插入');
+          toast(t('chart.inserted'));
         });
         break;
       case 'menu:insert-table': insertTable(); break;
@@ -547,6 +551,7 @@ function boot() {
         setZoom(arg === 'in' ? zoom + 0.1 : arg === 'out' ? zoom - 0.1 : 1);
         break;
       case 'menu:check-update': checkForUpdates(true); break;
+      case 'menu:lang': pickLang(arg); break;
       default: break;
     }
   });
@@ -555,12 +560,12 @@ function boot() {
 
   api.onConfirmBeforeClose(async () => {
     const r = await confirmDialog({
-      title: '保存更改？',
-      text: `是否保存对「${docName()}」的修改？<br/>不保存的话，这些改动将会丢失。`,
+      title: t('dlg.close.title'),
+      text: t('dlg.close.text', { name: docName() }),
       buttons: [
-        { id: 'save', label: '保存', primary: true },
-        { id: 'discard', label: '不保存', danger: true },
-        { id: 'cancel', label: '取消' },
+        { id: 'save', label: t('common.save'), primary: true },
+        { id: 'discard', label: t('common.dontSave'), danger: true },
+        { id: 'cancel', label: t('common.cancel') },
       ],
     });
     if (r === 'save') {
@@ -582,6 +587,20 @@ function boot() {
     version: () => APP_VERSION,
     updater: { check: checkForUpdates },
     charts: { renderChartSVG, svgToPngDataUrl, sampleConfig, encodeChartConfig, decodeChartConfig },
+    i18n: {
+      getLang,
+      setLang: pickLang,
+      t,
+      applyDomI18n,
+      // 测试用：切换语言后读一次工具栏提示，验证 7 种语言都能正确渲染
+      sample: (code) => {
+        const prev = getLang();
+        pickLang(code);
+        const title = document.querySelector('[data-cmd="bold"]').title;
+        pickLang(prev);
+        return title;
+      },
+    },
   };
 }
 

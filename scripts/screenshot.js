@@ -78,6 +78,24 @@ app.whenReady().then(async () => {
   await wait(900);
   await shot('04-formatting.png');
 
+  // 5. 多语言：英文 / 日语 / 德语 各截一张，确认工具栏、状态栏、欢迎文档都跟着切换
+  const langs = [
+    ['05-lang-en.png', 'en'],
+    ['06-lang-ja.png', 'ja'],
+    ['07-lang-de.png', 'de'],
+  ];
+  for (const [file, code] of langs) {
+    await win.webContents.executeJavaScript(`
+      (() => {
+        const mw = window.__mw;
+        mw.i18n.setLang('${code}');
+        mw.setMarkdown(mw.i18n.t('welcome'));
+      })()
+    `);
+    await wait(900);
+    await shot(file);
+  }
+
   console.log('done');
   app.quit();
 });

@@ -1,5 +1,8 @@
-import { CHART_TYPES, THEMES, renderChartSVG, svgToPngDataUrl, sampleConfig } from './charts.js';
+import {
+  CHART_TYPES, THEMES, renderChartSVG, svgToPngDataUrl, sampleConfig, chartTypeLabel, themeLabel,
+} from './charts.js';
 import { openModal, closeModal } from './ui.js';
+import { t } from './i18n.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -39,10 +42,10 @@ export function decodeChartConfig(title) {
 function renderTypes() {
   const box = $('#chartTypes');
   box.innerHTML = CHART_TYPES.map(
-    (t) =>
-      `<div class="chart-type${t.id === cfg.type ? ' active' : ''}" data-type="${t.id}">
-         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>
-         ${t.label}
+    (type) =>
+      `<div class="chart-type${type.id === cfg.type ? ' active' : ''}" data-type="${type.id}">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${type.icon}</svg>
+         ${chartTypeLabel(type.id)}
        </div>`,
   ).join('');
   box.querySelectorAll('[data-type]').forEach((el) => {
@@ -57,9 +60,9 @@ function renderTypes() {
 function renderThemes() {
   const box = $('#chartThemes');
   box.innerHTML = THEMES.map(
-    (t, i) =>
-      `<div class="theme-pick${i === cfg.theme ? ' active' : ''}" data-theme="${i}" title="${t.name}">
-         ${t.colors.slice(0, 4).map((c) => `<i style="background:${c}"></i>`).join('')}
+    (theme, i) =>
+      `<div class="theme-pick${i === cfg.theme ? ' active' : ''}" data-theme="${i}" title="${themeLabel(theme)}">
+         ${theme.colors.slice(0, 4).map((c) => `<i style="background:${c}"></i>`).join('')}
        </div>`,
   ).join('');
   box.querySelectorAll('[data-theme]').forEach((el) => {
@@ -74,13 +77,13 @@ function renderThemes() {
 function renderGrid() {
   const grid = $('#chartGrid');
   const head =
-    '<tr><th>分类</th>' +
+    `<tr><th>${t('chart.category')}</th>` +
     cfg.series
       .map(
         (s, i) =>
           `<th><div style="display:flex;align-items:center;gap:2px">
-             <input value="${escapeAttr(s.name)}" data-series-name="${i}" placeholder="系列${i + 1}"/>
-             ${cfg.series.length > 1 ? `<button data-del-series="${i}" title="删除系列">✕</button>` : ''}
+             <input value="${escapeAttr(s.name)}" data-series-name="${i}" placeholder="${t('chart.series', { n: i + 1 })}"/>
+             ${cfg.series.length > 1 ? `<button data-del-series="${i}" title="${t('chart.deleteSeries')}">✕</button>` : ''}
            </div></th>`,
       )
       .join('') +
@@ -90,14 +93,14 @@ function renderGrid() {
     .map(
       (c, ri) =>
         '<tr>' +
-        `<td><input value="${escapeAttr(c)}" data-cat="${ri}" placeholder="分类名"/></td>` +
+        `<td><input value="${escapeAttr(c)}" data-cat="${ri}" placeholder="${t('chart.categoryName')}"/></td>` +
         cfg.series
           .map(
             (s, si) =>
               `<td><input value="${escapeAttr(s.values[ri] ?? '')}" data-cell="${ri}-${si}" placeholder="0"/></td>`,
           )
           .join('') +
-        `<td class="del"><button data-del-row="${ri}" title="删除该行">✕</button></td>` +
+        `<td class="del"><button data-del-row="${ri}" title="${t('chart.deleteRow')}">✕</button></td>` +
         '</tr>',
     )
     .join('');
@@ -188,12 +191,12 @@ export function initChartDialog() {
     renderPreview();
   };
   $('#addSeries').onclick = () => {
-    cfg.series.push({ name: `系列${cfg.series.length + 1}`, values: cfg.categories.map(() => 0) });
+    cfg.series.push({ name: t('chart.series', { n: cfg.series.length + 1 }), values: cfg.categories.map(() => 0) });
     renderGrid();
     renderPreview();
   };
   $('#addCategory').onclick = () => {
-    cfg.categories.push(`分类${cfg.categories.length + 1}`);
+    cfg.categories.push(`${t('chart.category')} ${cfg.categories.length + 1}`);
     cfg.series.forEach((s) => s.values.push(0));
     renderGrid();
     renderPreview();
@@ -212,23 +215,32 @@ export function initChartDialog() {
   $('#chartInsert').onclick = async () => {
     const svg = renderChartSVG(cfg);
     $('#chartInsert').disabled = true;
-    $('#chartInsert').textContent = '生成中…';
+    $('#chartInsert').textContent = t('chart.generating');
     try {
       const dataUrl = await svgToPngDataUrl(svg, 2);
       onInsertCb?.({
         src: dataUrl,
-        alt: cfg.title || '图表',
+        alt: cfg.title || t('chart.alt'),
         title: encodeChartConfig(cfg),
       });
       closeModal('maskChart');
     } catch (err) {
       console.error(err);
-      alert('图表生成失败：' + (err.message || err));
+      alert(t('chart.failed', { msg: err.message || err }));
     } finally {
       $('#chartInsert').disabled = false;
-      $('#chartInsert').textContent = '插入图表';
+      $('#chartInsert').textContent = t('chart.insert');
     }
   };
+}
+
+/** 语言切换后重绘对话框内的动态文案（对话框未打开时也安全） */
+export function refreshChartDialog() {
+  if (!$('#chartTypes')) return;
+  renderTypes();
+  renderThemes();
+  renderGrid();
+  renderPreview();
 }
 
 export function currentConfig() {

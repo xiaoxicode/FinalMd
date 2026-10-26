@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld('api', {
 
   appVersion: () => ipcRenderer.sendSync('app:version'),
 
+  // 把界面语言同步给主进程（原生菜单、系统对话框使用同一种语言）
+  setLang: (code) => ipcRenderer.send('app:set-lang', code),
+
   updater: {
     check: (opts) => ipcRenderer.invoke('updater:check', opts),
     download: () => ipcRenderer.invoke('updater:download'),
@@ -31,7 +34,7 @@ contextBridge.exposeInMainWorld('api', {
       'menu:export-html', 'menu:export-pdf', 'menu:find',
       'menu:insert-image', 'menu:insert-chart', 'menu:insert-table',
       'menu:insert-link', 'menu:insert-hr', 'menu:insert-codeblock', 'menu:insert-toc',
-      'menu:format', 'menu:heading', 'menu:zoom', 'menu:check-update',
+      'menu:format', 'menu:heading', 'menu:zoom', 'menu:check-update', 'menu:lang',
     ];
     const listeners = channels.map((ch) => {
       const fn = (_e, arg) => handler(ch, arg);

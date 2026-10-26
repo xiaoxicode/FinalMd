@@ -1,6 +1,9 @@
 const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const {
+  LANGS, CODES, t: translate, matchLang, normalizeLang,
+} = require('./shared/i18n/index.js');
 // 打包产物里只有 updater.dist.js（esbuild 已把 electron-updater 及其依赖打进去）；
 // 开发时没有这个文件，直接走源码。
 let initUpdater = null;
@@ -13,6 +16,10 @@ try {
 let win = null;
 let isDirty = false;
 let forceClose = false;
+// 主进程侧的语言状态：决定原生菜单与系统对话框的语言，由渲染层通过 IPC 同步
+let currentLang = matchLang(app.getLocale()) || 'en';
+
+const tr = (key, vars) => translate(currentLang, key, vars);
 
 function createWindow() {
   win = new BrowserWindow({
@@ -20,7 +27,7 @@ function createWindow() {
     height: 860,
     minWidth: 760,
     minHeight: 520,
-    title: '墨写 Markdown',
+    title: tr('app.title'),
     backgroundColor: '#f2f2f2',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 16, y: 16 },
@@ -59,82 +66,93 @@ function send(channel, ...args) {
 function buildMenu() {
   const template = [
     {
-      label: '文件',
+      label: tr('menu.file'),
       submenu: [
-        { label: '新建', accelerator: 'CmdOrCtrl+N', click: () => send('menu:new') },
-        { label: '打开…', accelerator: 'CmdOrCtrl+O', click: () => send('menu:open') },
+        { label: tr('menu.file.new'), accelerator: 'CmdOrCtrl+N', click: () => send('menu:new') },
+        { label: tr('menu.file.open'), accelerator: 'CmdOrCtrl+O', click: () => send('menu:open') },
         { type: 'separator' },
-        { label: '保存', accelerator: 'CmdOrCtrl+S', click: () => send('menu:save') },
-        { label: '另存为…', accelerator: 'CmdOrCtrl+Shift+S', click: () => send('menu:save-as') },
+        { label: tr('menu.file.save'), accelerator: 'CmdOrCtrl+S', click: () => send('menu:save') },
+        { label: tr('menu.file.saveAs'), accelerator: 'CmdOrCtrl+Shift+S', click: () => send('menu:save-as') },
         { type: 'separator' },
-        { label: '导出为 HTML…', click: () => send('menu:export-html') },
-        { label: '导出为 PDF…', click: () => send('menu:export-pdf') },
+        { label: tr('menu.file.exportHtml'), click: () => send('menu:export-html') },
+        { label: tr('menu.file.exportPdf'), click: () => send('menu:export-pdf') },
         { type: 'separator' },
-        { role: 'close' },
+        { role: 'close', label: tr('menu.file.close') },
       ],
     },
     {
-      label: '编辑',
+      label: tr('menu.edit'),
       submenu: [
-        { role: 'undo', label: '撤销' },
-        { role: 'redo', label: '重做' },
+        { role: 'undo', label: tr('menu.edit.undo') },
+        { role: 'redo', label: tr('menu.edit.redo') },
         { type: 'separator' },
-        { role: 'cut', label: '剪切' },
-        { role: 'copy', label: '复制' },
-        { role: 'paste', label: '粘贴' },
-        { role: 'selectAll', label: '全选' },
+        { role: 'cut', label: tr('menu.edit.cut') },
+        { role: 'copy', label: tr('menu.edit.copy') },
+        { role: 'paste', label: tr('menu.edit.paste') },
+        { role: 'selectAll', label: tr('menu.edit.selectAll') },
         { type: 'separator' },
-        { label: '查找', accelerator: 'CmdOrCtrl+F', click: () => send('menu:find') },
+        { label: tr('menu.edit.find'), accelerator: 'CmdOrCtrl+F', click: () => send('menu:find') },
       ],
     },
     {
-      label: '插入',
+      label: tr('menu.insert'),
       submenu: [
-        { label: '图片…', accelerator: 'CmdOrCtrl+Shift+I', click: () => send('menu:insert-image') },
-        { label: '图表…', accelerator: 'CmdOrCtrl+Shift+C', click: () => send('menu:insert-chart') },
-        { label: '表格', click: () => send('menu:insert-table') },
-        { label: '链接', accelerator: 'CmdOrCtrl+K', click: () => send('menu:insert-link') },
+        { label: tr('menu.insert.image'), accelerator: 'CmdOrCtrl+Shift+I', click: () => send('menu:insert-image') },
+        { label: tr('menu.insert.chart'), accelerator: 'CmdOrCtrl+Shift+C', click: () => send('menu:insert-chart') },
+        { label: tr('menu.insert.table'), click: () => send('menu:insert-table') },
+        { label: tr('menu.insert.link'), accelerator: 'CmdOrCtrl+K', click: () => send('menu:insert-link') },
         { type: 'separator' },
-        { label: '分割线', click: () => send('menu:insert-hr') },
-        { label: '代码块', click: () => send('menu:insert-codeblock') },
-        { label: '目录', click: () => send('menu:insert-toc') },
+        { label: tr('menu.insert.hr'), click: () => send('menu:insert-hr') },
+        { label: tr('menu.insert.codeblock'), click: () => send('menu:insert-codeblock') },
+        { label: tr('menu.insert.toc'), click: () => send('menu:insert-toc') },
       ],
     },
     {
-      label: '格式',
+      label: tr('menu.format'),
       submenu: [
-        { label: '加粗', accelerator: 'CmdOrCtrl+B', click: () => send('menu:format', 'bold') },
-        { label: '斜体', accelerator: 'CmdOrCtrl+I', click: () => send('menu:format', 'italic') },
-        { label: '下划线', accelerator: 'CmdOrCtrl+U', click: () => send('menu:format', 'underline') },
-        { label: '删除线', accelerator: 'CmdOrCtrl+Shift+X', click: () => send('menu:format', 'strike') },
+        { label: tr('menu.format.bold'), accelerator: 'CmdOrCtrl+B', click: () => send('menu:format', 'bold') },
+        { label: tr('menu.format.italic'), accelerator: 'CmdOrCtrl+I', click: () => send('menu:format', 'italic') },
+        { label: tr('menu.format.underline'), accelerator: 'CmdOrCtrl+U', click: () => send('menu:format', 'underline') },
+        { label: tr('menu.format.strike'), accelerator: 'CmdOrCtrl+Shift+X', click: () => send('menu:format', 'strike') },
         { type: 'separator' },
-        { label: '正文', accelerator: 'CmdOrCtrl+0', click: () => send('menu:heading', 0) },
-        { label: '标题 1', accelerator: 'CmdOrCtrl+1', click: () => send('menu:heading', 1) },
-        { label: '标题 2', accelerator: 'CmdOrCtrl+2', click: () => send('menu:heading', 2) },
-        { label: '标题 3', accelerator: 'CmdOrCtrl+3', click: () => send('menu:heading', 3) },
-        { label: '标题 4', accelerator: 'CmdOrCtrl+4', click: () => send('menu:heading', 4) },
-        { label: '标题 5', accelerator: 'CmdOrCtrl+5', click: () => send('menu:heading', 5) },
-        { label: '标题 6', accelerator: 'CmdOrCtrl+6', click: () => send('menu:heading', 6) },
+        { label: tr('menu.format.body'), accelerator: 'CmdOrCtrl+0', click: () => send('menu:heading', 0) },
+        ...[1, 2, 3, 4, 5, 6].map((n) => ({
+          label: tr('menu.format.heading', { n }),
+          accelerator: `CmdOrCtrl+${n}`,
+          click: () => send('menu:heading', n),
+        })),
         { type: 'separator' },
-        { label: '项目符号列表', click: () => send('menu:format', 'bulletList') },
-        { label: '编号列表', click: () => send('menu:format', 'orderedList') },
-        { label: '引用', click: () => send('menu:format', 'blockquote') },
+        { label: tr('tb.bulletList'), click: () => send('menu:format', 'bulletList') },
+        { label: tr('tb.orderedList'), click: () => send('menu:format', 'orderedList') },
+        { label: tr('tb.quote'), click: () => send('menu:format', 'blockquote') },
       ],
     },
     {
-      label: '视图',
+      label: tr('menu.view'),
       submenu: [
-        { label: '放大', accelerator: 'CmdOrCtrl+=', click: () => send('menu:zoom', 'in') },
-        { label: '缩小', accelerator: 'CmdOrCtrl+-', click: () => send('menu:zoom', 'out') },
-        { label: '重置缩放', accelerator: 'CmdOrCtrl+Shift+0', click: () => send('menu:zoom', 'reset') },
+        { label: tr('menu.view.zoomIn'), accelerator: 'CmdOrCtrl+=', click: () => send('menu:zoom', 'in') },
+        { label: tr('menu.view.zoomOut'), accelerator: 'CmdOrCtrl+-', click: () => send('menu:zoom', 'out') },
+        { label: tr('menu.view.zoomReset'), accelerator: 'CmdOrCtrl+Shift+0', click: () => send('menu:zoom', 'reset') },
         { type: 'separator' },
-        { role: 'toggleDevTools', label: '开发者工具' },
+        { role: 'toggleDevTools', label: tr('menu.view.devtools') },
       ],
     },
     {
-      label: '帮助',
+      label: tr('menu.language'),
+      submenu: LANGS.map((l) => ({
+        label: l.label,
+        type: 'radio',
+        checked: l.code === currentLang,
+        click: () => {
+          // 交给渲染层统一切换：它会刷新界面、持久化，并通过 app:set-lang 回传重建菜单
+          send('menu:lang', l.code);
+        },
+      })),
+    },
+    {
+      label: tr('menu.help'),
       submenu: [
-        { label: '检查更新…', click: () => send('menu:check-update') },
+        { label: tr('menu.help.checkUpdate'), click: () => send('menu:check-update') },
       ],
     },
   ];
@@ -146,10 +164,10 @@ function buildMenu() {
 
 ipcMain.handle('dialog:open-markdown', async () => {
   const res = await dialog.showOpenDialog(win, {
-    title: '打开 Markdown 文件',
+    title: tr('dialog.openFile'),
     filters: [
-      { name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'txt'] },
-      { name: '所有文件', extensions: ['*'] },
+      { name: tr('filter.markdown'), extensions: ['md', 'markdown', 'mdown', 'txt'] },
+      { name: tr('filter.all'), extensions: ['*'] },
     ],
     properties: ['openFile'],
   });
@@ -159,7 +177,7 @@ ipcMain.handle('dialog:open-markdown', async () => {
     const content = fs.readFileSync(filePath, 'utf8');
     return { filePath, content };
   } catch (err) {
-    dialog.showErrorBox('打开失败', String(err.message || err));
+    dialog.showErrorBox(tr('err.openFailed'), String(err.message || err));
     return null;
   }
 });
@@ -168,9 +186,9 @@ ipcMain.handle('dialog:save-markdown', async (_e, { filePath, content, suggested
   let target = filePath;
   if (!target) {
     const res = await dialog.showSaveDialog(win, {
-      title: '保存 Markdown 文件',
-      defaultPath: suggestedName || '未命名文档.md',
-      filters: [{ name: 'Markdown', extensions: ['md'] }],
+      title: tr('dialog.saveFile'),
+      defaultPath: suggestedName || tr('doc.untitledFile'),
+      filters: [{ name: tr('filter.markdown'), extensions: ['md'] }],
     });
     if (res.canceled || !res.filePath) return null;
     target = res.filePath;
@@ -180,15 +198,15 @@ ipcMain.handle('dialog:save-markdown', async (_e, { filePath, content, suggested
     fs.writeFileSync(target, content, 'utf8');
     return { filePath: target };
   } catch (err) {
-    dialog.showErrorBox('保存失败', String(err.message || err));
+    dialog.showErrorBox(tr('err.saveFailed'), String(err.message || err));
     return null;
   }
 });
 
 ipcMain.handle('dialog:open-image', async () => {
   const res = await dialog.showOpenDialog(win, {
-    title: '插入图片',
-    filters: [{ name: '图片', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'] }],
+    title: tr('dialog.insertImage'),
+    filters: [{ name: tr('filter.images'), extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'] }],
     properties: ['openFile', 'multiSelections'],
   });
   if (res.canceled || !res.filePaths.length) return [];
@@ -211,7 +229,7 @@ ipcMain.handle('dialog:export-file', async (_e, { defaultPath, filters, content,
     fs.writeFileSync(res.filePath, content, encoding || 'utf8');
     return { filePath: res.filePath };
   } catch (err) {
-    dialog.showErrorBox('导出失败', String(err.message || err));
+    dialog.showErrorBox(tr('err.exportFailed'), String(err.message || err));
     return null;
   }
 });
@@ -223,6 +241,14 @@ ipcMain.handle('dialog:message-box', async (_e, opts) => {
 
 ipcMain.on('app:version', (e) => {
   e.returnValue = app.getVersion();
+});
+
+// 渲染层切换语言后同步过来：重建原生菜单，并让后续系统对话框使用同一语言
+ipcMain.on('app:set-lang', (_e, code) => {
+  const next = normalizeLang(code);
+  if (next === currentLang) return;
+  currentLang = next;
+  buildMenu();
 });
 
 ipcMain.on('app:set-dirty', (_e, val) => {
@@ -242,9 +268,9 @@ ipcMain.on('app:close-confirmed', () => {
 ipcMain.handle('app:print-to-pdf', async () => {
   if (!win) return null;
   const res = await dialog.showSaveDialog(win, {
-    title: '导出 PDF',
-    defaultPath: '未命名文档.pdf',
-    filters: [{ name: 'PDF', extensions: ['pdf'] }],
+    title: tr('dialog.exportPdf'),
+    defaultPath: tr('dialog.pdfName'),
+    filters: [{ name: tr('filter.pdf'), extensions: ['pdf'] }],
   });
   if (res.canceled || !res.filePath) return null;
   try {
@@ -252,7 +278,7 @@ ipcMain.handle('app:print-to-pdf', async () => {
     fs.writeFileSync(res.filePath, data);
     return { filePath: res.filePath };
   } catch (err) {
-    dialog.showErrorBox('导出 PDF 失败', String(err.message || err));
+    dialog.showErrorBox(tr('err.pdfFailed'), String(err.message || err));
     return null;
   }
 });

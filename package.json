@@ -1,6 +1,6 @@
 {
   "name": "markdown-writer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "墨写 Markdown —— 所见即所得的 Markdown 写作器（桌面版）",
   "main": "main.js",
   "author": "Cliff <daijh@live.cn>",
@@ -11,8 +11,9 @@
   },
   "homepage": "https://github.com/xiaoxicode/FinalMd",
   "scripts": {
-    "build": "esbuild renderer/src/app.js --bundle --outfile=renderer/dist/app.js --format=iife --platform=browser --target=chrome120 && esbuild updater.js --bundle --platform=node --outfile=updater.dist.js --format=cjs --external:electron",
-    "watch": "esbuild renderer/src/app.js --bundle --outfile=renderer/dist/app.js --format=iife --platform=browser --target=chrome120 --watch",
+    "build": "esbuild renderer/src/app.js --bundle --outfile=renderer/dist/app.js --format=iife --platform=browser --target=chrome120 --charset=utf8 && esbuild updater.js --bundle --platform=node --outfile=updater.dist.js --format=cjs --external:electron",
+    "i18n": "node scripts/check-i18n.js",
+    "watch": "esbuild renderer/src/app.js --bundle --outfile=renderer/dist/app.js --format=iife --platform=browser --target=chrome120 --charset=utf8 --watch",
     "start": "npm run build && env -u ELECTRON_RUN_AS_NODE electron .",
     "icon": "env -u ELECTRON_RUN_AS_NODE ./node_modules/electron/dist/Electron.app/Contents/MacOS/Electron scripts/make-icon.js --no-sandbox --disable-gpu",
     "dist": "npm run build && python3 scripts/make_app.py",
@@ -40,6 +41,7 @@
       "preload.js",
       "updater.dist.js",
       "package.json",
+      "shared/**/*",
       "renderer/**/*",
       "!renderer/src/**/*"
     ],

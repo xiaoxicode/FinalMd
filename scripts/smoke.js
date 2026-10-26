@@ -128,7 +128,50 @@ const TEST = `
   /* 5. UI 元素 */
   ok('工具栏已渲染', document.querySelectorAll('.ribbon-group').length >= 6, '分组数 ' + document.querySelectorAll('.ribbon-group').length);
   ok('段落样式下拉', !!document.querySelector('#styleSelect'), '');
-  ok('状态栏字数', /\\d+ 字/.test(document.querySelector('#statWords').textContent), document.querySelector('#statWords').textContent);
+  ok('状态栏字数', /\\d+/.test(document.querySelector('#statWords').textContent), document.querySelector('#statWords').textContent);
+
+  /* 5c. 多语言（7 种语言） */
+  const langSel = document.querySelector('#langSelect');
+  ok('语言选择器存在', !!langSel, langSel ? '选项数 ' + langSel.options.length : '未找到');
+  ok(
+    '语言选择器含 7 种语言',
+    !!langSel && langSel.options.length === 7,
+    langSel ? Array.from(langSel.options).map(function (o) { return o.value; }).join(',') : '',
+  );
+
+  const LANG_EXPECT = { zh: '加粗', en: 'Bold', ja: '太字', ko: '굵게', fr: 'Gras', de: 'Fett', es: 'Negrita' };
+  let langOk = 0;
+  const langSeen = [];
+  Object.keys(LANG_EXPECT).forEach(function (code) {
+    const title = mw.i18n.sample(code);
+    const shown = title.replace(/\\s*\\(.*$/, '');
+    langSeen.push(code + '=' + shown);
+    if (shown === LANG_EXPECT[code]) langOk++;
+  });
+  ok('7 种语言工具栏文案均正确', langOk === 7, langSeen.join(' | '));
+
+  const originLang = mw.i18n.getLang();
+  mw.i18n.setLang('ja');
+  ok('切换日语后 html lang 更新', document.documentElement.getAttribute('lang') === 'ja', String(document.documentElement.getAttribute('lang')));
+  const h1Text = (document.querySelector('#styleSelect option[value="h1"]') || {}).textContent;
+  ok('段落样式下拉已本地化', h1Text === '見出し 1', h1Text);
+  const findPh = document.querySelector('#findInput').placeholder;
+  ok('查找框占位符本地化', findPh === '検索…', findPh);
+  const imgHead = document.querySelector('#maskImage .modal-head span').textContent;
+  ok('弹窗标题本地化', imgHead === '画像を挿入', imgHead);
+
+  mw.i18n.setLang('de');
+  const addSeriesText = document.querySelector('#addSeries').textContent;
+  ok('图表对话框按钮本地化', addSeriesText === '＋ Reihe hinzufügen', addSeriesText);
+  const chartPh = document.querySelector('#chartTitle').placeholder;
+  ok('图表占位符本地化', chartPh === 'z. B. Umsatz je Quartal', chartPh);
+  const statWordText = document.querySelector('#statWords').textContent;
+  ok('状态栏单位本地化', /Wörter$/.test(statWordText), statWordText);
+  ok('语言已持久化', localStorage.getItem('finalmd.lang') === 'de', String(localStorage.getItem('finalmd.lang')));
+
+  mw.i18n.setLang(originLang);
+  ok('语言可还原', mw.i18n.getLang() === originLang, mw.i18n.getLang());
+  ok('标题栏回到原文', document.querySelector('#docTitle').textContent.length > 0, document.querySelector('#docTitle').textContent);
 
   /* 5b. 六级标题支持 */
   const sel = document.querySelector('#styleSelect');
@@ -238,7 +281,7 @@ const TEST = `
   mw.setMarkdown('中文统计测试内容十个字\\n\\nHello world again.');
   await new Promise((r) => setTimeout(r, 300));
   const w = document.querySelector('#statWords').textContent;
-  ok('字数统计非 0', /^([1-9]\\d*)\\s*字$/.test(w), w);
+  ok('字数统计非 0', /^[1-9]\\d*\\s*\\S+$/.test(w), w);
 
   /* 11. 保存到磁盘（真实 ⌘S 由主进程完成同样动作） */
   const c2 = document.createElement('canvas');

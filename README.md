@@ -2,6 +2,8 @@
 
 **简体中文** · [English](#english)
 
+当前版本 **v1.0.1** ｜ 变更记录见 [CHANGELOG.md](CHANGELOG.md)
+
 FinalMd 是一个**所见即所得的 Markdown 桌面写作器**。用 Word / WPS 的方式写文章，保存出来的是标准 `.md` 文件。
 
 输入 `# ` 立刻变成大标题、选中文字按工具栏按钮加粗变色——全程看不到 `**` 这样的 Markdown 符号；需要原始文件时，⌘S 保存出的就是干净的 Markdown 源码。
@@ -32,6 +34,7 @@ FinalMd 面向**不熟悉 Markdown 语法**的用户：你可以像用普通笔�
 - 六级标题（⌘1~⌘6，⌘0 回正文）
 - 查找替换（⌘F）、字数 / 字符 / 行数统计、⌘+/- 缩放
 - 白纸排版界面，未保存关闭提醒
+- **界面多语言（7 种）**：简体中文 / English / 日本語 / 한국어 / Français / Deutsch / Español，工具栏右侧下拉随时切换，首次启动自动跟随系统语言
 
 **插入内容**
 - 图片：本地多选、拖拽进编辑区、⌘V 粘贴，自动内嵌为 base64；超过 380KB 自动压缩（最长边 1600px）
@@ -54,7 +57,8 @@ git clone https://github.com/xiaoxicode/FinalMd.git
 cd FinalMd
 npm install
 npm start          # 开发运行
-npm run smoke      # 冒烟测试（53 项）
+npm run smoke      # 冒烟测试（66 项）
+npm run i18n       # 多语言词典一致性校验
 ```
 
 ### 打包发布
@@ -73,6 +77,8 @@ Electron 45 + TipTap 3（ProseMirror）+ tiptap-markdown，构建用 esbuild。
 渲染层被打包成自包含单文件，**最终 app 内不含 node_modules**，因此在代码签名与公证环节不会遇到原生模块签名不全的常见问题。
 
 图表为自研 SVG 引擎（无第三方图表库），插入时转为 PNG 内嵌。
+
+**多语言结构**：界面文案集中在 `shared/i18n/`（每种语言一个文件），主进程与渲染层共用同一份词典——原生菜单和系统对话框因此能和界面保持同一语言。新增一种语言只需添加词典文件并登记到 `shared/i18n/index.js`，再跑 `npm run i18n` 校验 key 与占位符是否对齐。
 
 ### 已知限制
 
@@ -95,6 +101,8 @@ Copyright © 2026 Cliff
 
 ### Introduction
 
+Current version **v1.0.1** · see [CHANGELOG.md](CHANGELOG.md)
+
 FinalMd is an editor designed specifically for users who are **unfamiliar with Markdown syntax**. You write documents just as you would in a standard note editor, and the files are saved in `.md` format — comfortable to write, and ready to feed straight into an AI agent.
 
 Type `# ` and it becomes a heading; select text and hit a toolbar button to bold or color it — you never see `**`-style Markdown syntax. When you need the source, ⌘S writes clean Markdown.
@@ -115,6 +123,7 @@ If you are interested in this project, I am very glad to learn your advices.
 - Six heading levels (⌘1–⌘6, ⌘0 back to paragraph)
 - Find & replace (⌘F), word / character / line count, ⌘+/− zoom
 - Paper-like layout, with a warning when closing unsaved work
+- **7 UI languages**: Simplified Chinese, English, Japanese, Korean, French, German and Spanish — switch from the ribbon; the first launch follows your system language
 
 **Inserting content**
 - Images: pick from disk, drag & drop, or ⌘V paste — embedded as base64; auto-compressed above 380KB (max edge 1600px)
@@ -137,7 +146,8 @@ git clone https://github.com/xiaoxicode/FinalMd.git
 cd FinalMd
 npm install
 npm start          # run in development
-npm run smoke      # smoke tests (53 checks)
+npm run smoke      # smoke tests (66 checks)
+npm run i18n       # i18n dictionary consistency check
 ```
 
 ### Build & release
@@ -156,6 +166,8 @@ Electron 45 + TipTap 3 (ProseMirror) + tiptap-markdown, bundled with esbuild.
 The renderer is bundled into a self-contained single file, so **the final app contains no node_modules** — which avoids the usual notarization failures caused by unsigned native modules.
 
 Charts are a hand-written SVG engine (no third-party chart library), rasterized to PNG on insert.
+
+**i18n layout**: all interface strings live in `shared/i18n/` (one file per language) and are shared by the main process and the renderer, so native menus and system dialogs speak the same language as the UI. Adding a language means adding one dictionary file, registering it in `shared/i18n/index.js`, and running `npm run i18n` to verify keys and placeholders line up.
 
 ### Known limitations
 

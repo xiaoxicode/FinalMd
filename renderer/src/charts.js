@@ -1,20 +1,32 @@
 // 图表引擎：配置 -> SVG -> PNG(dataURL)，不依赖任何图表库
+import { t } from './i18n.js';
 
 export const CHART_TYPES = [
-  { id: 'bar', label: '柱状图', icon: '<rect x="3" y="12" width="4" height="8"/><rect x="9" y="7" width="4" height="13"/><rect x="15" y="3" width="4" height="17"/>' },
-  { id: 'line', label: '折线图', icon: '<path d="M3 17l6-7 5 4 7-10"/><circle cx="9" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="14" cy="14" r="1.2" fill="currentColor" stroke="none"/>' },
-  { id: 'area', label: '面积图', icon: '<path d="M3 17l6-7 5 4 7-10v13H3z" fill="currentColor" opacity=".28"/><path d="M3 17l6-7 5 4 7-10"/>' },
-  { id: 'hbar', label: '条形图', icon: '<rect x="3" y="3" width="14" height="4"/><rect x="3" y="10" width="18" height="4"/><rect x="3" y="17" width="10" height="4"/>' },
-  { id: 'pie', label: '饼图', icon: '<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M12 3a9 9 0 0 1 9 9" opacity=".5"/>' },
+  { id: 'bar', labelKey: 'chart.type.bar', icon: '<rect x="3" y="12" width="4" height="8"/><rect x="9" y="7" width="4" height="13"/><rect x="15" y="3" width="4" height="17"/>' },
+  { id: 'line', labelKey: 'chart.type.line', icon: '<path d="M3 17l6-7 5 4 7-10"/><circle cx="9" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="14" cy="14" r="1.2" fill="currentColor" stroke="none"/>' },
+  { id: 'area', labelKey: 'chart.type.area', icon: '<path d="M3 17l6-7 5 4 7-10v13H3z" fill="currentColor" opacity=".28"/><path d="M3 17l6-7 5 4 7-10"/>' },
+  { id: 'hbar', labelKey: 'chart.type.hbar', icon: '<rect x="3" y="3" width="14" height="4"/><rect x="3" y="10" width="18" height="4"/><rect x="3" y="17" width="10" height="4"/>' },
+  { id: 'pie', labelKey: 'chart.type.pie', icon: '<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M12 3a9 9 0 0 1 9 9" opacity=".5"/>' },
 ];
 
+/** 图表类型的本地化名称 */
+export function chartTypeLabel(id) {
+  const hit = CHART_TYPES.find((c) => c.id === id);
+  return hit ? t(hit.labelKey) : id;
+}
+
 export const THEMES = [
-  { name: '商务蓝', colors: ['#2f6feb', '#5aa0ff', '#8fc0ff', '#1f4fa8', '#7d5fff', '#c2dcff'] },
-  { name: '暖阳橙', colors: ['#e8543f', '#ff8a6b', '#f2a03d', '#b8331f', '#ffc46b', '#ffd9cc'] },
-  { name: '清新绿', colors: ['#2ba36b', '#5ec98f', '#96e0b7', '#177a4c', '#8fd14f', '#ccf2df'] },
-  { name: '典雅紫', colors: ['#7c5cff', '#a78bfa', '#c4b5fd', '#5b3fd6', '#ec4899', '#e5ddff'] },
-  { name: '沉稳灰', colors: ['#4b5563', '#6b7280', '#9ca3af', '#1f2937', '#374151', '#d1d5db'] },
+  { key: 'business', colors: ['#2f6feb', '#5aa0ff', '#8fc0ff', '#1f4fa8', '#7d5fff', '#c2dcff'] },
+  { key: 'sunrise', colors: ['#e8543f', '#ff8a6b', '#f2a03d', '#b8331f', '#ffc46b', '#ffd9cc'] },
+  { key: 'fresh', colors: ['#2ba36b', '#5ec98f', '#96e0b7', '#177a4c', '#8fd14f', '#ccf2df'] },
+  { key: 'elegant', colors: ['#7c5cff', '#a78bfa', '#c4b5fd', '#5b3fd6', '#ec4899', '#e5ddff'] },
+  { key: 'gray', colors: ['#4b5563', '#6b7280', '#9ca3af', '#1f2937', '#374151', '#d1d5db'] },
 ];
+
+/** 配色方案的本地化名称 */
+export function themeLabel(theme) {
+  return t('theme.' + (theme && theme.key ? theme.key : 'business'));
+}
 
 const FONT = "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif";
 const W = 760;
@@ -59,7 +71,7 @@ function title(cfg, y) {
 function legend(series, colors, y) {
   if (series.length <= 1) return '';
   const items = series.map((s, i) => {
-    const label = esc(s.name || `系列${i + 1}`);
+    const label = esc(s.name || t('chart.series', { n: i + 1 }));
     return { label, color: colors[i % colors.length] };
   });
   // 简易横向布局：按估算宽度换行
@@ -99,7 +111,7 @@ function legend(series, colors, y) {
 
 function axisChart(cfg, kind) {
   const cats = cfg.categories.filter((c) => c !== undefined && c !== null);
-  const series = cfg.series.length ? cfg.series : [{ name: '系列1', values: [] }];
+  const series = cfg.series.length ? cfg.series : [{ name: t('chart.series', { n: 1 }), values: [] }];
   const colors = THEMES[cfg.theme || 0].colors;
   const n = Math.max(cats.length, 1);
 
@@ -207,7 +219,7 @@ function axisChart(cfg, kind) {
 
 function hbarChart(cfg) {
   const cats = cfg.categories;
-  const series = cfg.series.length ? cfg.series : [{ name: '系列1', values: [] }];
+  const series = cfg.series.length ? cfg.series : [{ name: t('chart.series', { n: 1 }), values: [] }];
   const colors = THEMES[cfg.theme || 0].colors;
   const n = Math.max(cats.length, 1);
 
@@ -376,13 +388,13 @@ export function svgToPngDataUrl(svg, scale = 2) {
 export function sampleConfig() {
   return {
     type: 'bar',
-    title: '季度营收',
-    xLabel: '季度',
-    yLabel: '营收（万元）',
-    categories: ['第一季度', '第二季度', '第三季度', '第四季度'],
+    title: t('sample.title'),
+    xLabel: t('sample.xLabel'),
+    yLabel: t('sample.yLabel'),
+    categories: [t('sample.cat1'), t('sample.cat2'), t('sample.cat3'), t('sample.cat4')],
     series: [
-      { name: '2025 年', values: [120, 158, 176, 210] },
-      { name: '2026 年', values: [148, 182, 205, 246] },
+      { name: t('sample.series1'), values: [120, 158, 176, 210] },
+      { name: t('sample.series2'), values: [148, 182, 205, 246] },
     ],
     theme: 0,
     showValue: true,

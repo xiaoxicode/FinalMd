@@ -14,7 +14,10 @@ OUT_DIR = os.path.join(ROOT, 'build')
 APP_NAME = '墨写 Markdown.app'
 DST_APP = os.path.join(OUT_DIR, APP_NAME)
 BUNDLE_ID = 'cn.moxie.markdown'
-VERSION = '1.0.0'
+# 版本号直接从 package.json 读，避免两处不一致
+with open(os.path.join(ROOT, 'package.json'), encoding='utf-8') as _fp:
+    _pkg = json.load(_fp)
+VERSION = _pkg.get('version', '1.0.0')
 
 log = lambda *a: print(*a, flush=True)
 
@@ -58,6 +61,8 @@ def main():
     os.makedirs(app_dir, exist_ok=True)
     for f in ['main.js', 'preload.js', 'updater.dist.js']:
         shutil.copyfile(os.path.join(ROOT, f), os.path.join(app_dir, f))
+    # 主进程与渲染层共用的 i18n 词典
+    shutil.copytree(os.path.join(ROOT, 'shared'), os.path.join(app_dir, 'shared'))
     shutil.copytree(os.path.join(ROOT, 'renderer'), os.path.join(app_dir, 'renderer'),
                     ignore=shutil.ignore_patterns('src'))
     pkg = {
@@ -66,8 +71,8 @@ def main():
         'version': VERSION,
         'description': '所见即所得的 Markdown 写作器',
         'main': 'main.js',
-        'author': '',
-        'license': 'ISC',
+        'author': 'Cliff',
+        'license': 'Apache-2.0',
     }
     with open(os.path.join(app_dir, 'package.json'), 'w', encoding='utf-8') as fp:
         json.dump(pkg, fp, ensure_ascii=False, indent=2)

@@ -1,4 +1,5 @@
 import { ICONS, TEXT_ICONS, headingIcon, PARAGRAPH_ICON } from './icons.js';
+import { t, withAccel, LANGS, getLang } from './i18n.js';
 
 const $ = (sel) => document.querySelector(sel);
 const FULL_SPACE = '　　'; // 两个全角空格 = 首行缩进
@@ -35,9 +36,9 @@ export function isModalOpen(id) {
 }
 
 /** 通用确认框，返回被点击按钮的 id */
-export function confirmDialog({ title = '确认', text = '', buttons = [] }) {
+export function confirmDialog({ title = null, text = '', buttons = [] }) {
   return new Promise((resolve) => {
-    $('#confirmTitle').textContent = title;
+    $('#confirmTitle').textContent = title || t('common.confirm');
     $('#confirmText').innerHTML = text;
     const foot = $('#confirmFoot');
     foot.innerHTML = '';
@@ -61,16 +62,16 @@ const GROUPS = [
   {
     row: 1,
     items: [
-      { cmd: 'new', icon: ICONS.new, title: '新建 (⌘N)' },
-      { cmd: 'open', icon: ICONS.open, title: '打开 (⌘O)' },
-      { cmd: 'save', icon: ICONS.save, title: '保存为 Markdown (⌘S)' },
+      { cmd: 'new', icon: ICONS.new, titleKey: 'tb.new', accel: '⌘N' },
+      { cmd: 'open', icon: ICONS.open, titleKey: 'tb.open', accel: '⌘O' },
+      { cmd: 'save', icon: ICONS.save, titleKey: 'tb.save', accel: '⌘S' },
     ],
   },
   {
     row: 1,
     items: [
-      { cmd: 'undo', icon: ICONS.undo, title: '撤销 (⌘Z)' },
-      { cmd: 'redo', icon: ICONS.redo, title: '重做 (⌘⇧Z)' },
+      { cmd: 'undo', icon: ICONS.undo, titleKey: 'tb.undo', accel: '⌘Z' },
+      { cmd: 'redo', icon: ICONS.redo, titleKey: 'tb.redo', accel: '⌘⇧Z' },
     ],
   },
   { row: 1, styleSelect: true },
@@ -81,70 +82,71 @@ const GROUPS = [
   {
     row: 1,
     items: [
-      { cmd: 'bold', icon: ICONS.bold, title: '加粗 (⌘B)' },
-      { cmd: 'italic', icon: ICONS.italic, title: '斜体 (⌘I)' },
-      { cmd: 'underline', icon: ICONS.underline, title: '下划线 (⌘U)' },
-      { cmd: 'strike', icon: ICONS.strike, title: '删除线' },
-      { cmd: 'color', icon: TEXT_ICONS.color, title: '字体颜色', cls: 'color-btn' },
-      { cmd: 'highlight', icon: TEXT_ICONS.highlight, title: '突出显示', cls: 'color-btn' },
-      { cmd: 'clearFormat', icon: TEXT_ICONS.clear, title: '清除格式' },
+      { cmd: 'bold', icon: ICONS.bold, titleKey: 'tb.bold', accel: '⌘B' },
+      { cmd: 'italic', icon: ICONS.italic, titleKey: 'tb.italic', accel: '⌘I' },
+      { cmd: 'underline', icon: ICONS.underline, titleKey: 'tb.underline', accel: '⌘U' },
+      { cmd: 'strike', icon: ICONS.strike, titleKey: 'tb.strike' },
+      { cmd: 'color', icon: TEXT_ICONS.color, titleKey: 'tb.color', cls: 'color-btn' },
+      { cmd: 'highlight', icon: TEXT_ICONS.highlight, titleKey: 'tb.highlight', cls: 'color-btn' },
+      { cmd: 'clearFormat', icon: TEXT_ICONS.clear, titleKey: 'tb.clearFormat' },
     ],
   },
   {
     row: 2,
     items: [
-      { cmd: 'bulletList', icon: ICONS.bulletList, title: '项目符号列表' },
-      { cmd: 'orderedList', icon: ICONS.orderedList, title: '编号列表' },
+      { cmd: 'bulletList', icon: ICONS.bulletList, titleKey: 'tb.bulletList' },
+      { cmd: 'orderedList', icon: ICONS.orderedList, titleKey: 'tb.orderedList' },
     ],
   },
   {
     row: 2,
     items: [
-      { cmd: 'outdent', icon: ICONS.outdent, title: '减少缩进' },
-      { cmd: 'indent', icon: ICONS.indent, title: '增加缩进' },
+      { cmd: 'outdent', icon: ICONS.outdent, titleKey: 'tb.outdent' },
+      { cmd: 'indent', icon: ICONS.indent, titleKey: 'tb.indent' },
     ],
   },
   {
     row: 2,
     items: [
-      { cmd: 'align:left', icon: ICONS.alignLeft, title: '左对齐' },
-      { cmd: 'align:center', icon: ICONS.alignCenter, title: '居中' },
-      { cmd: 'align:right', icon: ICONS.alignRight, title: '右对齐' },
-      { cmd: 'align:justify', icon: ICONS.alignJustify, title: '两端对齐' },
+      { cmd: 'align:left', icon: ICONS.alignLeft, titleKey: 'tb.alignLeft' },
+      { cmd: 'align:center', icon: ICONS.alignCenter, titleKey: 'tb.alignCenter' },
+      { cmd: 'align:right', icon: ICONS.alignRight, titleKey: 'tb.alignRight' },
+      { cmd: 'align:justify', icon: ICONS.alignJustify, titleKey: 'tb.alignJustify' },
     ],
   },
   {
     row: 2,
     items: [
-      { cmd: 'blockquote', icon: ICONS.quote, title: '引用' },
-      { cmd: 'code', icon: ICONS.code, title: '行内代码' },
-      { cmd: 'codeBlock', icon: ICONS.codeBlock, title: '代码块' },
-      { cmd: 'hr', icon: ICONS.hr, title: '分割线' },
+      { cmd: 'blockquote', icon: ICONS.quote, titleKey: 'tb.quote' },
+      { cmd: 'code', icon: ICONS.code, titleKey: 'tb.inlineCode' },
+      { cmd: 'codeBlock', icon: ICONS.codeBlock, titleKey: 'tb.codeBlock' },
+      { cmd: 'hr', icon: ICONS.hr, titleKey: 'tb.hr' },
     ],
   },
   {
     row: 2,
     items: [
-      { cmd: 'link', icon: ICONS.link, title: '插入链接 (⌘K)' },
-      { cmd: 'table', icon: ICONS.table, title: '插入表格' },
-      { cmd: 'image', icon: ICONS.image, title: '插入图片 (⌘⇧I)' },
-      { cmd: 'chart', icon: ICONS.chart, title: '插入图表 (⌘⇧C)' },
-      { cmd: 'toc', icon: ICONS.toc, title: '插入目录' },
-      { cmd: 'find', icon: ICONS.find, title: '查找替换 (⌘F)' },
+      { cmd: 'link', icon: ICONS.link, titleKey: 'tb.link', accel: '⌘K' },
+      { cmd: 'table', icon: ICONS.table, titleKey: 'tb.table' },
+      { cmd: 'image', icon: ICONS.image, titleKey: 'tb.image', accel: '⌘⇧I' },
+      { cmd: 'chart', icon: ICONS.chart, titleKey: 'tb.chart', accel: '⌘⇧C' },
+      { cmd: 'toc', icon: ICONS.toc, titleKey: 'tb.toc' },
+      { cmd: 'find', icon: ICONS.find, titleKey: 'tb.find', accel: '⌘F' },
     ],
   },
+  { row: 2, langSelect: true },
 ];
 
 function makeButton(item) {
   const b = document.createElement('button');
   b.className = 'btn' + (item.cls ? ' ' + item.cls : '');
-  b.title = item.title;
+  b.title = item.title || (item.titleKey ? withAccel(item.titleKey, item.accel) : '');
   b.dataset.cmd = item.cmd;
   b.innerHTML = item.icon;
   return b;
 }
 
-export function buildRibbon(onCommand) {
+export function buildRibbon(onCommand, onLangPick) {
   const r1 = $('#ribbonRow1');
   const r2 = $('#ribbonRow2');
   r1.innerHTML = '';
@@ -157,48 +159,63 @@ export function buildRibbon(onCommand) {
       const sel = document.createElement('select');
       sel.className = 'style-select';
       sel.id = 'styleSelect';
+      sel.title = t('style.body');
       sel.innerHTML = [
-        '<option value="p">正文</option>',
-        '<option value="h1">标题 1</option>',
-        '<option value="h2">标题 2</option>',
-        '<option value="h3">标题 3</option>',
-        '<option value="h4">标题 4</option>',
-        '<option value="h5">标题 5</option>',
-        '<option value="h6">标题 6</option>',
-        '<option value="quote">引用</option>',
+        `<option value="p">${t('style.body')}</option>`,
+        ...[1, 2, 3, 4, 5, 6].map((n) => `<option value="h${n}">${t('style.heading', { n })}</option>`),
+        `<option value="quote">${t('style.quote')}</option>`,
       ].join('');
       sel.onchange = () => onCommand('style:' + sel.value);
       box.appendChild(sel);
     } else if (g.headingButtons) {
       box.classList.add('heading-group');
       box.appendChild(
-        makeButton({ cmd: 'style:p', icon: PARAGRAPH_ICON, title: '正文 (⌘0)', cls: 'hbtn' }),
+        makeButton({
+          cmd: 'style:p',
+          icon: PARAGRAPH_ICON,
+          title: withAccel('style.body', '⌘0'),
+          cls: 'hbtn',
+        }),
       );
       for (let lv = 1; lv <= 6; lv++) {
         box.appendChild(
           makeButton({
             cmd: 'style:h' + lv,
             icon: headingIcon(lv),
-            title: `标题 ${lv} (⌘${lv})`,
+            title: `${t('style.heading', { n: lv })} (⌘${lv})`,
             cls: 'hbtn',
           }),
         );
       }
+    } else if (g.langSelect) {
+      box.classList.add('lang-group');
+      const sel = document.createElement('select');
+      sel.className = 'style-select lang-select';
+      sel.id = 'langSelect';
+      sel.title = t('tb.language');
+      sel.innerHTML = LANGS.map(
+        (l) => `<option value="${l.code}">${l.label}</option>`,
+      ).join('');
+      sel.value = getLang();
+      sel.onchange = () => onLangPick && onLangPick(sel.value);
+      box.appendChild(sel);
     } else {
       g.items.forEach((it) => box.appendChild(makeButton(it)));
     }
     (g.row === 1 ? r1 : r2).appendChild(box);
   });
 
-  // 让工具栏点击不抢走编辑器焦点
+  // 让工具栏点击不抢走编辑器焦点。
+  // 注意：buildRibbon 会在语言切换时反复调用，这里必须用属性赋值而不是 addEventListener，
+  // 否则监听器会叠加，一次点击触发多次命令（表现为 H1~H6 点了没反应）。
   [r1, r2].forEach((row) => {
-    row.addEventListener('mousedown', (e) => {
+    row.onmousedown = (e) => {
       if (e.target.closest('button') || e.target.closest('select')) e.preventDefault();
-    });
-    row.addEventListener('click', (e) => {
+    };
+    row.onclick = (e) => {
       const btn = e.target.closest('[data-cmd]');
       if (btn) onCommand(btn.dataset.cmd);
-    });
+    };
   });
 }
 
@@ -278,8 +295,8 @@ export function openColorPopover(anchor, editor) {
   showPopover(
     anchor,
     `<div class="swatches">${swatches}</div>
-     <div class="row"><span>自定义</span><input type="color" id="customColor" value="#2f6feb" style="width:36px;height:24px;border:1px solid var(--border);border-radius:4px;background:none;padding:0"></div>
-     <div class="row"><button data-act="clear">恢复默认颜色</button></div>`,
+     <div class="row"><span>${t('color.custom')}</span><input type="color" id="customColor" value="#2f6feb" style="width:36px;height:24px;border:1px solid var(--border);border-radius:4px;background:none;padding:0"></div>
+     <div class="row"><button data-act="clear">${t('color.reset')}</button></div>`,
     (el) => {
       el.querySelectorAll('[data-color]').forEach((s) => {
         s.onclick = () => {
@@ -305,7 +322,7 @@ export function openHighlightPopover(anchor, editor) {
   showPopover(
     anchor,
     `<div class="swatches">${swatches}</div>
-     <div class="row"><button data-act="clear">取消突出显示</button></div>`,
+     <div class="row"><button data-act="clear">${t('hl.clear')}</button></div>`,
     (el) => {
       el.querySelectorAll('[data-color]').forEach((s) => {
         s.onclick = () => {
@@ -347,7 +364,7 @@ export function initFindBar(editor) {
       n++;
       i += term.length;
     }
-    count.textContent = n ? `共 ${n} 处` : '无匹配';
+    count.textContent = n ? t('find.count', { n }) : t('find.noMatch');
   };
 
   const go = (dir) => {
@@ -367,13 +384,13 @@ export function initFindBar(editor) {
       }
     });
     if (!ranges.length) {
-      count.textContent = '无匹配';
+      count.textContent = t('find.noMatch');
       return;
     }
     if (dir > 0) found = ranges.find((r) => r.from >= from) || ranges[0];
     else found = [...ranges].reverse().find((r) => r.from < from) || ranges[ranges.length - 1];
     editor.chain().focus().setTextSelection(found).scrollIntoView().run();
-    count.textContent = `共 ${ranges.length} 处`;
+    count.textContent = t('find.count', { n: ranges.length });
   };
 
   const doReplace = (all) => {
@@ -384,7 +401,7 @@ export function initFindBar(editor) {
       const md = editor.storage.markdown.getMarkdown();
       const next = md.split(term).join(rep);
       editor.commands.setContent(next);
-      toast('已全部替换');
+      toast(t('find.replacedAll'));
     } else {
       const { selection } = editor.state;
       const selText = editor.state.doc.textBetween(selection.from, selection.to);
@@ -456,7 +473,7 @@ export function buildTocHtml(editor) {
   if (!items.length) return null;
   const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const li = items
-    .map((i) => `<li style="margin-left:${(i.level - 1) * 18}px">${esc(i.text) || '（无标题文本）'}</li>`)
+    .map((i) => `<li style="margin-left:${(i.level - 1) * 18}px">${esc(i.text) || t('toc.emptyItem')}</li>`)
     .join('');
   return `<ul>${li}</ul>`;
 }
