@@ -1,0 +1,107 @@
+{
+  "name": "markdown-writer",
+  "version": "1.0.0",
+  "description": "墨写 Markdown —— 所见即所得的 Markdown 写作器（桌面版）",
+  "main": "main.js",
+  "author": "Cliff <daijh@live.cn>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaoxicode/FinalMd.git"
+  },
+  "homepage": "https://github.com/xiaoxicode/FinalMd",
+  "scripts": {
+    "build": "esbuild renderer/src/app.js --bundle --outfile=renderer/dist/app.js --format=iife --platform=browser --target=chrome120 && esbuild updater.js --bundle --platform=node --outfile=updater.dist.js --format=cjs --external:electron",
+    "watch": "esbuild renderer/src/app.js --bundle --outfile=renderer/dist/app.js --format=iife --platform=browser --target=chrome120 --watch",
+    "start": "npm run build && env -u ELECTRON_RUN_AS_NODE electron .",
+    "icon": "env -u ELECTRON_RUN_AS_NODE ./node_modules/electron/dist/Electron.app/Contents/MacOS/Electron scripts/make-icon.js --no-sandbox --disable-gpu",
+    "dist": "npm run build && python3 scripts/make_app.py",
+    "smoke": "env -u ELECTRON_RUN_AS_NODE ./node_modules/electron/dist/Electron.app/Contents/MacOS/Electron scripts/smoke.js --no-sandbox --disable-gpu",
+    "shot": "env -u ELECTRON_RUN_AS_NODE ./node_modules/electron/dist/Electron.app/Contents/MacOS/Electron scripts/screenshot.js --no-sandbox --disable-gpu",
+    "dist:mac": "npm run build && electron-builder --mac --arm64",
+    "dist:mac-all": "npm run build && electron-builder --mac --arm64 --x64",
+    "mas-dev": "npm run build && electron-builder --mac mas-dev",
+    "mas": "npm run build && electron-builder --mac mas"
+  },
+  "keywords": [
+    "markdown",
+    "editor",
+    "wysiwyg"
+  ],
+  "build": {
+    "appId": "cn.moxie.markdown",
+    "productName": "墨写 Markdown",
+    "copyright": "Copyright © 2026",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "updater.dist.js",
+      "package.json",
+      "renderer/**/*",
+      "!renderer/src/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "xiaoxicode",
+      "repo": "FinalMd",
+      "releaseType": "release"
+    },
+    "mac": {
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "identity": "Developer ID Application: Your Name (TEAMID)",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.inherit.plist",
+      "notarize": true
+    },
+    "dmg": {
+      "sign": false
+    },
+    "mas": {
+      "type": "distribution",
+      "hardenedRuntime": false,
+      "entitlements": "build/entitlements.mas.plist",
+      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
+      "provisioningProfile": "build/MacAppStore.provisionprofile"
+    },
+    "masDev": {
+      "type": "development",
+      "hardenedRuntime": false,
+      "entitlements": "build/entitlements.mas.plist",
+      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
+      "provisioningProfile": "build/MacDevelopment.provisionprofile"
+    }
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.32.0",
+    "@tiptap/extension-highlight": "^3.32.0",
+    "@tiptap/extension-image": "^3.32.0",
+    "@tiptap/extension-table": "^3.32.0",
+    "@tiptap/extension-table-cell": "^3.32.0",
+    "@tiptap/extension-table-header": "^3.32.0",
+    "@tiptap/extension-table-row": "^3.32.0",
+    "@tiptap/extension-text-align": "^3.32.0",
+    "@tiptap/extension-text-style": "^3.32.0",
+    "@tiptap/extensions": "^3.32.0",
+    "@tiptap/pm": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
+    "electron-updater": "^6.8.11",
+    "tiptap-markdown": "^0.9.0"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2"
+  }
+}

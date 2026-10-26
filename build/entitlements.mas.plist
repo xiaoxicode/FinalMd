@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- MAS 上架必备：Apple 应用沙箱 -->
+  <key>com.apple.security.app-sandbox</key>
+  <true/>
+  <!-- Electron 20+ 在 arm64 上必须开启 JIT，否则启动即崩溃 -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <!-- 应用组：把 TEAM_ID 换成你的 Apple 开发者团队 ID -->
+  <key>com.apple.security.application-groups</key>
+  <array>
+    <string>TEAM_ID.cn.moxie.markdown</string>
+  </array>
+  <!-- 通过「打开/保存」对话框由用户选定的文件：读写 Markdown、导出 HTML/PDF -->
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+  <!-- 导入图片（拖拽/粘贴/选择文件）只需只读即可，一并保留避免沙箱拦截 -->
+  <key>com.apple.security.files.user-selected.read-only</key>
+  <true/>
+  <!-- Electron 初始化及后续可能的联网需求 -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+  <!-- 打印 / 导出 PDF -->
+  <key>com.apple.security.print</key>
+  <true/>
+</dict>
+</plist>

@@ -1,0 +1,23 @@
+# 依赖
+node_modules/
+
+# 构建 / 发布产物（体积大，不入仓库）
+release/
+build/*/
+build/*.provisionprofile
+.packager-tmp/
+
+# esbuild 产物（由 npm run build 生成）
+renderer/dist/
+updater.dist.js
+
+# 图标中间产物
+assets/icon.iconset/
+assets/iconset.iconset/
+assets/_icon.html
+assets/t32.png
+
+# 测试与环境
+test-output.md
+.env
+.DS_Store

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Electron 运行 V8 需要 JIT，公证时必须显式声明 -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <!-- 部分 Electron 版本需要，缺少会在 hardened runtime 下崩溃 -->
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+  <!-- 允许加载未单独签名的动态库，避免第三方 framework 被拒 -->
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+</dict>
+</plist>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data: blob:; media-src 'self' data:;
+                 style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self' data:;" />
+  <title>墨写 Markdown</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- 标题栏 -->
+    <header class="titlebar">
+      <span class="doc-title" id="docTitle">未命名文档</span>
+      <span class="doc-path" id="docPath"></span>
+      <span class="spacer"></span>
+      <span class="save-state" id="saveState">已保存</span>
+    </header>
+
+    <!-- 功能区 -->
+    <div class="ribbon">
+      <div class="ribbon-row" id="ribbonRow1"></div>
+      <div class="ribbon-row" id="ribbonRow2"></div>
+    </div>
+
+    <!-- 查找栏 -->
+    <div class="findbar" id="findbar">
+      <input type="text" id="findInput" placeholder="查找…" />
+      <button class="btn text" id="findPrev">上一个</button>
+      <button class="btn text" id="findNext">下一个</button>
+      <span class="count" id="findCount"></span>
+      <input type="text" id="replaceInput" placeholder="替换为…" />
+      <button class="btn text" id="replaceOne">替换</button>
+      <button class="btn text" id="replaceAll">全部替换</button>
+      <span class="spacer" style="flex:1"></span>
+      <button class="btn" id="findClose" title="关闭">✕</button>
+    </div>
+
+    <!-- 编辑区 -->
+    <main class="workspace" id="workspace">
+      <div class="page">
+        <div id="editor"></div>
+      </div>
+    </main>
+
+    <!-- 状态栏 -->
+    <footer class="statusbar">
+      <span class="item" id="statWords">0 字</span>
+      <span class="item" id="statChars">0 字符</span>
+      <span class="item" id="statLines">1 行</span>
+      <span class="spacer"></span>
+      <span class="item" id="statPath">未保存</span>
+      <span class="item">缩放 <span id="statZoom">100%</span></span>
+      <span class="item">Markdown</span>
+    </footer>
+  </div>
+
+  <!-- 插入图片 -->
+  <div class="modal-mask" id="maskImage">
+    <div class="modal small">
+      <div class="modal-head">插入图片<span class="spacer"></span><button class="btn" data-close="maskImage">✕</button></div>
+      <div class="modal-body">
+        <div class="field">
+          <label>从本地选择（支持多选，图片会内嵌进 Markdown）</label>
+          <button class="btn wide" id="pickImageBtn" style="border:1px solid var(--border);background:#fff;height:34px">选择图片文件…</button>
+        </div>
+        <div class="field">
+          <label>或粘贴图片链接（URL）</label>
+          <input type="url" id="imageUrl" placeholder="https://example.com/pic.png" />
+        </div>
+        <div class="field">
+          <label>替代文字（可选，用于无障碍与导出）</label>
+          <input type="text" id="imageAlt" placeholder="图片描述" />
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin:0">
+          提示：也可以直接把图片拖进编辑区，或按 ⌘V 粘贴剪贴板中的图片。
+        </p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" data-close="maskImage">取消</button>
+        <button class="btn primary" id="imageInsert">插入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 插入图表 -->
+  <div class="modal-mask" id="maskChart">
+    <div class="modal wide">
+      <div class="modal-head">插入图表<span class="spacer"></span><button class="btn" data-close="maskChart">✕</button></div>
+      <div class="modal-body">
+        <div class="chart-types" id="chartTypes"></div>
+        <div class="field-row">
+          <div class="field"><label>图表标题</label><input type="text" id="chartTitle" placeholder="例如：季度营收趋势" /></div>
+          <div class="field"><label>X 轴 / 分类名称</label><input type="text" id="chartXLabel" placeholder="例如：季度" /></div>
+          <div class="field"><label>Y 轴名称</label><input type="text" id="chartYLabel" placeholder="例如：营收（万元）" /></div>
+        </div>
+        <div class="field">
+          <label>数据</label>
+          <table class="data-grid" id="chartGrid"></table>
+          <div class="grid-tools">
+            <button id="addSeries">＋ 添加系列</button>
+            <button id="addCategory">＋ 添加分类</button>
+            <button id="resetChart">重置为示例</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>配色</label>
+            <div class="theme-picks" id="chartThemes"></div>
+          </div>
+          <div class="field" style="max-width:150px">
+            <label>显示数值</label>
+            <select id="chartShowValue"><option value="1">显示</option><option value="0">不显示</option></select>
+          </div>
+        </div>
+        <div class="chart-preview" id="chartPreview"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" data-close="maskChart">取消</button>
+        <button class="btn primary" id="chartInsert">插入图表</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 插入链接 -->
+  <div class="modal-mask" id="maskLink">
+    <div class="modal small">
+      <div class="modal-head">插入链接<span class="spacer"></span><button class="btn" data-close="maskLink">✕</button></div>
+      <div class="modal-body">
+        <div class="field"><label>链接地址</label><input type="url" id="linkUrl" placeholder="https://" /></div>
+        <div class="field"><label>显示文字（留空则显示链接本身）</label><input type="text" id="linkText" /></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" data-close="maskLink">取消</button>
+        <button class="btn primary" id="linkInsert">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 插入表格 -->
+  <div class="modal-mask" id="maskTable">
+    <div class="modal small">
+      <div class="modal-head">插入表格<span class="spacer"></span><button class="btn" data-close="maskTable">✕</button></div>
+      <div class="modal-body">
+        <div class="field-row">
+          <div class="field"><label>行数</label><input type="number" id="tableRows" value="3" min="1" max="50" /></div>
+          <div class="field"><label>列数</label><input type="number" id="tableCols" value="3" min="1" max="20" /></div>
+        </div>
+        <div class="field"><label><input type="checkbox" id="tableHeader" checked style="width:auto;margin-right:6px" />包含标题行</label></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" data-close="maskTable">取消</button>
+        <button class="btn primary" id="tableInsert">插入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通用确认框 -->
+  <div class="modal-mask" id="maskConfirm">
+    <div class="modal small">
+      <div class="modal-head" id="confirmTitle">确认</div>
+      <div class="modal-body"><p id="confirmText" style="margin:0;font-size:13.5px;line-height:1.7"></p></div>
+      <div class="modal-foot" id="confirmFoot"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="dist/app.js"></script>
+</body>
+</html>
