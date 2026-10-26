@@ -1,7 +1,7 @@
 {
-  "name": "markdown-writer",
+  "name": "finalmd",
   "version": "1.0.1",
-  "description": "墨写 Markdown —— 所见即所得的 Markdown 写作器（桌面版）",
+  "description": "墨写（FinalMd）—— 所见即所得的 Markdown 写作器（桌面版）",
   "main": "main.js",
   "author": "Cliff <daijh@live.cn>",
   "license": "Apache-2.0",
@@ -33,7 +33,7 @@
   ],
   "build": {
     "appId": "cn.moxie.markdown",
-    "productName": "墨写 Markdown",
+    "productName": "墨写",
     "copyright": "Copyright © 2026 Cliff",
     "directories": {
       "output": "release"
@@ -85,7 +85,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "墨写 Markdown"
+      "shortcutName": "墨写"
     },
     "linux": {
       "icon": "assets/icon.png",

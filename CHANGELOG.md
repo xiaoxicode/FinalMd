@@ -7,6 +7,34 @@
 
 ## 未发布 Unreleased
 
+### 变更 Changed
+
+- **统一项目名称**：中文名定为「**墨写**」，英文名定为「**FinalMd**」，原「墨写 Markdown」全面收窄为「墨写」
+  - macOS 包名 `墨写 Markdown.app` → `墨写.app`（`CFBundleName` / `CFBundleDisplayName`）
+  - Windows 快捷方式与 NSIS 安装名称 `墨写 Markdown` → `墨写`
+  - 中文界面的标题（`app.title`）与欢迎文档标题 `欢迎使用「墨写 Markdown」` → `欢迎使用「墨写」`
+  - npm 包名 `markdown-writer` → `finalmd`，`package-lock.json` 同步（顺带修正其落后的 version 与 license 字段）
+  - README / NOTICE 补注中英文名的对应关系
+  - 保留 `appId` 为 `cn.moxie.markdown` 不变，避免自动更新与系统关联失效
+
+  > **升级提示**：macOS 上 Electron 按包名决定用户数据目录，改名后路径从
+  > `~/Library/Application Support/墨写 Markdown` 变为 `~/Library/Application Support/墨写`，
+  > 语言偏好等设置不会自动跟随；文档文件不受影响。
+
+### English
+
+- **Unified project naming**: Chinese name **墨写**, English name **FinalMd**; the former "墨写 Markdown" is shortened to "墨写" throughout
+  - macOS bundle `墨写 Markdown.app` → `墨写.app` (`CFBundleName` / `CFBundleDisplayName`)
+  - Windows start-menu / NSIS shortcut name `墨写 Markdown` → `墨写`
+  - Chinese UI `app.title` and welcome heading now read 欢迎使用「墨写」
+  - npm package renamed `markdown-writer` → `finalmd`; `package-lock.json` resynced (its stale version and license fields were fixed along the way)
+  - README / NOTICE now spell out the Chinese–English name pairing
+  - `appId` stays `cn.moxie.markdown` on purpose, so auto-update and file associations keep working
+
+  > **Upgrade note**: on macOS Electron derives the user-data directory from the bundle name, so it moves from
+  > `~/Library/Application Support/墨写 Markdown` to `~/Library/Application Support/墨写` and preferences such as
+  > the selected language do not carry over automatically. Document files are unaffected.
+
 ### 新增 Added
 
 - **Windows / Linux 打包支持**：补齐 `electron-builder` 的 `win` / `linux` / `nsis` 配置

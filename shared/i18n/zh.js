@@ -1,6 +1,6 @@
 // 简体中文（基准语言）
 module.exports = {
-  'app.title': '墨写 Markdown',
+  'app.title': '墨写',
   'app.tagline': '所见即所得的 Markdown 写作器',
 
   'common.cancel': '取消',
@@ -232,7 +232,7 @@ module.exports = {
   'err.exportFailed': '导出失败',
   'err.pdfFailed': '导出 PDF 失败',
 
-  'welcome': `# 欢迎使用「墨写 Markdown」
+  'welcome': `# 欢迎使用「墨写」
 
 这是一个**所见即所得**的 Markdown 写作器：你看到的排版就是最终效果，不会显示任何 # 或 * 之类的标记符号，操作方式和 Word、WPS 一致。
 

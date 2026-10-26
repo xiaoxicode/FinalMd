@@ -1,10 +1,10 @@
-# FinalMd
+# FinalMd（墨写）
 
 **简体中文** · [English](#english)
 
 当前版本 **v1.0.1** ｜ 变更记录见 [CHANGELOG.md](CHANGELOG.md)
 
-FinalMd 是一个**所见即所得的 Markdown 桌面写作器**。用 Word / WPS 的方式写文章，保存出来的是标准 `.md` 文件。
+FinalMd（中文名「墨写」）是一个**所见即所得的 Markdown 桌面写作器**。用 Word / WPS 的方式写文章，保存出来的是标准 `.md` 文件。
 
 输入 `# ` 立刻变成大标题、选中文字按工具栏按钮加粗变色——全程看不到 `**` 这样的 Markdown 符号；需要原始文件时，⌘S 保存出的就是干净的 Markdown 源码。
 
@@ -114,7 +114,7 @@ Copyright © 2026 Cliff
 
 Current version **v1.0.1** · see [CHANGELOG.md](CHANGELOG.md)
 
-FinalMd is an editor designed specifically for users who are **unfamiliar with Markdown syntax**. You write documents just as you would in a standard note editor, and the files are saved in `.md` format — comfortable to write, and ready to feed straight into an AI agent.
+FinalMd (Chinese name: 墨写) is an editor designed specifically for users who are **unfamiliar with Markdown syntax**. You write documents just as you would in a standard note editor, and the files are saved in `.md` format — comfortable to write, and ready to feed straight into an AI agent.
 
 Type `# ` and it becomes a heading; select text and hit a toolbar button to bold or color it — you never see `**`-style Markdown syntax. When you need the source, ⌘S writes clean Markdown.
 

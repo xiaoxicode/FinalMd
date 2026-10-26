@@ -11,7 +11,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_APP = os.path.join(ROOT, 'node_modules', 'electron', 'dist', 'Electron.app')
 OUT_DIR = os.path.join(ROOT, 'build')
-APP_NAME = '墨写 Markdown.app'
+APP_NAME = '墨写.app'
 DST_APP = os.path.join(OUT_DIR, APP_NAME)
 BUNDLE_ID = 'cn.moxie.markdown'
 # 版本号直接从 package.json 读，避免两处不一致
@@ -66,8 +66,8 @@ def main():
     shutil.copytree(os.path.join(ROOT, 'renderer'), os.path.join(app_dir, 'renderer'),
                     ignore=shutil.ignore_patterns('src'))
     pkg = {
-        'name': 'markdown-writer',
-        'productName': '墨写 Markdown',
+        'name': 'finalmd',
+        'productName': '墨写',
         'version': VERSION,
         'description': '所见即所得的 Markdown 写作器',
         'main': 'main.js',
@@ -103,13 +103,13 @@ def main():
                       text, count=1)
 
     for key, val in [
-        ('CFBundleDisplayName', '墨写 Markdown'),
-        ('CFBundleName', '墨写 Markdown'),
+        ('CFBundleDisplayName', '墨写'),
+        ('CFBundleName', '墨写'),
         ('CFBundleIdentifier', BUNDLE_ID),
         ('CFBundleShortVersionString', VERSION),
         ('CFBundleVersion', VERSION),
         ('CFBundleIconFile', 'electron.icns'),
-        ('CFBundleGetInfoString', '墨写 Markdown %s — 所见即所得的 Markdown 写作器' % VERSION),
+        ('CFBundleGetInfoString', '墨写 %s — 所见即所得的 Markdown 写作器' % VERSION),
         ('NSHumanReadableCopyright', ''),
         ('LSMinimumSystemVersion', '10.15'),
         ('NSHighResolutionCapable', 'true'),
@@ -132,7 +132,7 @@ def main():
 
     with open(plist_path, 'w', encoding='utf-8') as fp:
         fp.write(plist)
-    log('   CFBundleName = 墨写 Markdown, ID =', BUNDLE_ID)
+    log('   CFBundleName = 墨写, ID =', BUNDLE_ID)
 
     # 5) 清理隔离属性（保留 Electron 官方签名结构，仅去除下载标记）
     step('清除隔离属性并做 ad-hoc 签名')
